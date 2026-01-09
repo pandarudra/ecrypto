@@ -1,0 +1,36 @@
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+testfolder/
+test/
+restored/
+*.ecrypt
+mykey.txt
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+go.sum
+
+# Logs
+*.log
+
+# Personal
+plan.md
+backup/
