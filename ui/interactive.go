@@ -77,6 +77,22 @@ func SelectFile(title string) string {
 	}
 }
 
+// SelectFileOrSkip displays file browser with ability to cancel
+func SelectFileOrSkip(title string) string {
+	maxAttempts := 3
+	for i := 0; i < maxAttempts; i++ {
+		path := PromptUser(title, "")
+		if path == "" {
+			return ""
+		}
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+		fmt.Println(ErrorStyle.Render(fmt.Sprintf("File not found. %d attempts remaining (or press Enter to cancel)", maxAttempts-i-1)))
+	}
+	return ""
+}
+
 // SelectFolder displays folder browser
 func SelectFolder(title string) string {
 	for {

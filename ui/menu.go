@@ -79,9 +79,35 @@ func encryptInteractive() error {
 
 	inDir := SelectFolder("Enter folder path to encrypt")
 	
-	// Generate smart default output filename
-	defaultOut := filepath.Base(inDir) + ".ecrypt"
-	outFile := PromptUser("Enter output file path (.ecrypt)", defaultOut)
+	// Generate smart default with absolute path
+	folderName := filepath.Base(inDir)
+	defaultOut := filepath.Join(filepath.Dir(inDir), folderName+".ecrypt")
+	
+	fmt.Println()
+	fmt.Println(lipgloss.NewStyle().
+		Foreground(ColorDark).
+		Italic(true).
+		Render("💡 Tip: Specify full path like D:\\backup\\myfiles.ecrypt or just filename for current dir"))
+	fmt.Println()
+	
+	outFile := PromptUser("Output file path (full path or filename)", defaultOut)
+	
+	// If user provided relative path or just filename, make it absolute
+	if !filepath.IsAbs(outFile) {
+		// Check if it's just a filename or relative path
+		if filepath.Dir(outFile) == "." {
+			// Just a filename - ask where to save
+			fmt.Println()
+			saveDir := PromptUser("Save location (directory)", filepath.Dir(inDir))
+			outFile = filepath.Join(saveDir, outFile)
+		} else {
+			// Relative path - make absolute from current dir
+			absPath, err := filepath.Abs(outFile)
+			if err == nil {
+				outFile = absPath
+			}
+		}
+	}
 	
 	// Validate output is not a directory
 	if info, err := os.Stat(outFile); err == nil && info.IsDir() {
@@ -102,7 +128,55 @@ func encryptInteractive() error {
 			return errors.New("passphrases do not match")
 		}
 	} else {
-		keyFile = SelectFile("Select key file")
+		// Random key mode - generate or use existing
+		fmt.Println()
+		keyActionOpts := []string{"Generate new key", "Use existing key file"}
+		keyAction := SelectOption("Key file action", keyActionOpts)
+		
+		if keyAction == 0 {
+			// Generate new key
+			key, err := cmd.GenerateKey()
+			if err != nil {
+				return err
+			}
+			
+			fmt.Println()
+			fmt.Println(lipgloss.NewStyle().
+				Foreground(lipgloss.Color("11")).
+				Bold(true).
+				Render("Generated Key (SAVE THIS!):"))
+			fmt.Println()
+			fmt.Println(lipgloss.NewStyle().
+				Padding(1, 2).
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(ColorSecondary).
+				Render(key))
+			fmt.Println()
+			
+			defaultKeyFile := filepath.Join(filepath.Dir(outFile), "encryption_key.txt")
+			keyFile = PromptUser("Save key to file", defaultKeyFile)
+			
+			// Make absolute
+			if !filepath.IsAbs(keyFile) {
+				absPath, err := filepath.Abs(keyFile)
+				if err == nil {
+					keyFile = absPath
+				}
+			}
+			
+			if err := os.WriteFile(keyFile, []byte(key), 0o600); err != nil {
+				return err
+			}
+			PrintSuccess(fmt.Sprintf("Key saved to: %s", keyFile))
+		} else {
+			// Use existing key file
+			keyFile = SelectFileOrSkip("Select existing key file (or type path)")
+			if keyFile == "" {
+				PrintError("No key file selected.")
+				Pause()
+				return nil
+			}
+		}
 	}
 
 	PrintInfo("Encrypting your folder...")
@@ -137,7 +211,26 @@ func decryptInteractive() error {
 	fmt.Println()
 
 	inFile := SelectFile("Select .ecrypt file to decrypt")
-	outDir := PromptUser("Enter output folder path", "restored")
+	
+	// Generate smart default based on file location
+	defaultOutDir := filepath.Join(filepath.Dir(inFile), "restored")
+	
+	fmt.Println()
+	fmt.Println(lipgloss.NewStyle().
+		Foreground(ColorDark).
+		Italic(true).
+		Render("💡 Tip: Specify full path like D:\\restored\\myfiles or relative path"))
+	fmt.Println()
+	
+	outDir := PromptUser("Output folder path (where to extract)", defaultOutDir)
+	
+	// Make absolute if relative
+	if !filepath.IsAbs(outDir) {
+		absPath, err := filepath.Abs(outDir)
+		if err == nil {
+			outDir = absPath
+		}
+	}
 
 	PrintInfo("Reading container...")
 	// Show container info briefly
