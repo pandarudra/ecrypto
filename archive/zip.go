@@ -9,54 +9,67 @@ import (
 	"path/filepath"
 )
 
+// ProgressCallback is called for each file processed
+type ProgressCallback func(filename string)
+
 // ZipFolder compresses a folder into a ZIP archive (bytes).
 func ZipFolder(root string) ([]byte, error) {
-    buf := &bytes.Buffer{}
-    zw := zip.NewWriter(buf)
-    defer zw.Close()
+	return ZipFolderWithProgress(root, nil)
+}
 
-    root = filepath.Clean(root)
-    err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-        if err != nil {
-            return err
-        }
-        if d.IsDir() {
-            return nil
-        }
+// ZipFolderWithProgress compresses a folder with progress reporting
+func ZipFolderWithProgress(root string, onProgress ProgressCallback) ([]byte, error) {
+	buf := &bytes.Buffer{}
+	zw := zip.NewWriter(buf)
+	defer zw.Close()
 
-        rel, err := filepath.Rel(root, path)
-        if err != nil {
-            return err
-        }
+	root = filepath.Clean(root)
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
 
-        info, err := d.Info()
-        if err != nil {
-            return err
-        }
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
 
-        hdr := &zip.FileHeader{
-            Name:   filepath.ToSlash(rel),
-            Method: zip.Deflate,
-        }
-        hdr.SetModTime(info.ModTime())
+		// Report progress
+		if onProgress != nil {
+			onProgress(rel)
+		}
 
-        w, err := zw.CreateHeader(hdr)
-        if err != nil {
-            return err
-        }
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
 
-        f, err := os.Open(path)
-        if err != nil {
-            return err
-        }
-        defer f.Close()
+		hdr := &zip.FileHeader{
+			Name:   filepath.ToSlash(rel),
+			Method: zip.Deflate,
+		}
+		hdr.SetModTime(info.ModTime())
 
-        _, err = io.Copy(w, f)
-        return err
-    })
-    if err != nil {
-        return nil, err
-    }
+		w, err := zw.CreateHeader(hdr)
+		if err != nil {
+			return err
+		}
+
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		_, err = io.Copy(w, f)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
 
     if err := zw.Close(); err != nil {
         return nil, err
@@ -67,53 +80,63 @@ func ZipFolder(root string) ([]byte, error) {
 
 // UnzipTo extracts a ZIP archive (bytes) to a target folder.
 func UnzipTo(outDir string, zipBytes []byte) error {
-    readerAt := bytes.NewReader(zipBytes)
-    zr, err := zip.NewReader(readerAt, int64(len(zipBytes)))
-    if err != nil {
-        return err
-    }
+	return UnzipToWithProgress(outDir, zipBytes, nil)
+}
 
-    for _, f := range zr.File {
-        destPath := filepath.Join(outDir, filepath.FromSlash(f.Name))
+// UnzipToWithProgress extracts a ZIP archive with progress reporting
+func UnzipToWithProgress(outDir string, zipBytes []byte, onProgress ProgressCallback) error {
+	readerAt := bytes.NewReader(zipBytes)
+	zr, err := zip.NewReader(readerAt, int64(len(zipBytes)))
+	if err != nil {
+		return err
+	}
 
-        if f.FileInfo().IsDir() {
-            if err := os.MkdirAll(destPath, 0o755); err != nil {
-                return err
-            }
-            continue
-        }
+	for _, f := range zr.File {
+		destPath := filepath.Join(outDir, filepath.FromSlash(f.Name))
 
-        if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
-            return err
-        }
+		if f.FileInfo().IsDir() {
+			if err := os.MkdirAll(destPath, 0o755); err != nil {
+				return err
+			}
+			continue
+		}
 
-        rc, err := f.Open()
-        if err != nil {
-            return err
-        }
+		// Report progress
+		if onProgress != nil {
+			onProgress(f.Name)
+		}
 
-        tmp := destPath + ".tmp"
-        df, err := os.Create(tmp)
-        if err != nil {
-            rc.Close()
-            return err
-        }
+		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+			return err
+		}
 
-        if _, err := io.Copy(df, rc); err != nil {
-            rc.Close()
-            df.Close()
-            return err
-        }
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
 
-        rc.Close()
-        if err := df.Close(); err != nil {
-            return err
-        }
+		tmp := destPath + ".tmp"
+		df, err := os.Create(tmp)
+		if err != nil {
+			rc.Close()
+			return err
+		}
 
-        if err := os.Rename(tmp, destPath); err != nil {
-            return err
-        }
-    }
+		if _, err := io.Copy(df, rc); err != nil {
+			rc.Close()
+			df.Close()
+			return err
+		}
 
-    return nil
+		rc.Close()
+		if err := df.Close(); err != nil {
+			return err
+		}
+
+		if err := os.Rename(tmp, destPath); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -11,7 +11,7 @@ import (
 )
 
 // EncryptWithPassphrase encrypts folder with passphrase
-func EncryptWithPassphrase(inDir, outFile, pass string) error {
+func EncryptWithPassphrase(inDir, outFile, pass string, progressCallback archive.ProgressCallback) error {
 	h := &crypto.HeaderV1{
 		Magic:   [8]byte{'E', 'C', 'R', 'Y', 'P', 'T', '0', '1'},
 		Version: 1,
@@ -29,7 +29,7 @@ func EncryptWithPassphrase(inDir, outFile, pass string) error {
 		return err
 	}
 
-	zipBytes, err := archive.ZipFolder(inDir)
+	zipBytes, err := archive.ZipFolderWithProgress(inDir, progressCallback)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func EncryptWithPassphrase(inDir, outFile, pass string) error {
 }
 
 // EncryptWithKeyFile encrypts folder with key file
-func EncryptWithKeyFile(inDir, outFile, keyFile string) error {
+func EncryptWithKeyFile(inDir, outFile, keyFile string, progressCallback archive.ProgressCallback) error {
 	h := &crypto.HeaderV1{
 		Magic:   [8]byte{'E', 'C', 'R', 'Y', 'P', 'T', '0', '1'},
 		Version: 1,
@@ -77,7 +77,7 @@ func EncryptWithKeyFile(inDir, outFile, keyFile string) error {
 		return err
 	}
 
-	zipBytes, err := archive.ZipFolder(inDir)
+	zipBytes, err := archive.ZipFolderWithProgress(inDir, progressCallback)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func EncryptWithKeyFile(inDir, outFile, keyFile string) error {
 }
 
 // DecryptWithPassphrase decrypts file with passphrase
-func DecryptWithPassphrase(inFile, outDir, pass string) error {
+func DecryptWithPassphrase(inFile, outDir, pass string, progressCallback archive.ProgressCallback) error {
 	data, err := os.ReadFile(inFile)
 	if err != nil {
 		return err
@@ -135,11 +135,11 @@ func DecryptWithPassphrase(inFile, outDir, pass string) error {
 		return err
 	}
 
-	return archive.UnzipTo(outDir, pt)
+	return archive.UnzipToWithProgress(outDir, pt, progressCallback)
 }
 
 // DecryptWithKeyFile decrypts file with key file
-func DecryptWithKeyFile(inFile, outDir, keyFile string) error {
+func DecryptWithKeyFile(inFile, outDir, keyFile string, progressCallback archive.ProgressCallback) error {
 	data, err := os.ReadFile(inFile)
 	if err != nil {
 		return err
@@ -168,7 +168,7 @@ func DecryptWithKeyFile(inFile, outDir, keyFile string) error {
 		return err
 	}
 
-	return archive.UnzipTo(outDir, pt)
+	return archive.UnzipToWithProgress(outDir, pt, progressCallback)
 }
 
 // GenerateKey creates a random 32-byte key

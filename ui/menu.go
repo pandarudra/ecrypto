@@ -180,15 +180,43 @@ func encryptInteractive() error {
 	}
 
 	PrintInfo("Encrypting your folder...")
+	
+	// Calculate total files for progress tracking
+	_, fileCount, err := CalculateFolderSize(inDir)
+	if err != nil {
+		PrintWarning("Could not count files, proceeding without progress bar")
+		fileCount = 0
+	}
+	
+	// Create and start progress tracker
+	var progress *ProgressTracker
+	if fileCount > 0 {
+		progress = NewProgressTracker("Encrypting", fileCount)
+		progress.Start()
+	}
 
+	var encErr error
 	if keyMode == 0 {
-		if err := cmd.EncryptWithPassphrase(inDir, outFile, pass); err != nil {
-			return err
-		}
+		encErr = cmd.EncryptWithPassphrase(inDir, outFile, pass, func(filename string) {
+			if progress != nil {
+				progress.Update(filename)
+			}
+		})
 	} else {
-		if err := cmd.EncryptWithKeyFile(inDir, outFile, keyFile); err != nil {
-			return err
-		}
+		encErr = cmd.EncryptWithKeyFile(inDir, outFile, keyFile, func(filename string) {
+			if progress != nil {
+				progress.Update(filename)
+			}
+		})
+	}
+	
+	if progress != nil {
+		progress.Stop()
+		fmt.Println() // Add newline after progress bar
+	}
+	
+	if encErr != nil {
+		return encErr
 	}
 
 	PrintSuccess(fmt.Sprintf("Folder encrypted successfully!\nOutput: %s", outFile))
@@ -256,15 +284,23 @@ func decryptInteractive() error {
 	}
 
 	PrintInfo("Decrypting your file...")
-
+	
+	// For decryption, we don't know exact file count until we read the archive
+	// So we'll use a simple spinner initially
+	stopSpinner := ShowSimpleProgress("Decrypting")
+	
+	var decErr error
 	if keyMode == 0 {
-		if err := cmd.DecryptWithPassphrase(inFile, outDir, pass); err != nil {
-			return err
-		}
+		decErr = cmd.DecryptWithPassphrase(inFile, outDir, pass, nil)
 	} else {
-		if err := cmd.DecryptWithKeyFile(inFile, outDir, keyFile); err != nil {
-			return err
-		}
+		decErr = cmd.DecryptWithKeyFile(inFile, outDir, keyFile, nil)
+	}
+	
+	stopSpinner()
+	fmt.Println() // Add newline after spinner
+	
+	if decErr != nil {
+		return decErr
 	}
 
 	PrintSuccess(fmt.Sprintf("File decrypted successfully!\nOutput: %s", outDir))
