@@ -1,0 +1,37 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+
+jobs:
+    build-windows:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "1.21"
+
+            - name: Build
+              shell: pwsh
+              run: |
+                  $ErrorActionPreference = "Stop"
+                  mkdir dist
+                  go build -ldflags "-s -w -X main.Version=${{ github.ref_name }}" -o dist/ecrypto-windows-amd64.exe
+                  Get-FileHash dist/ecrypto-windows-amd64.exe -Algorithm SHA256 | Out-File dist/SHA256.txt
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: |
+                      dist/ecrypto-windows-amd64.exe
+                      dist/SHA256.txt
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
