@@ -1,6 +1,6 @@
 module ecrypto
 
-go 1.25.5
+go 1.21
 
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
