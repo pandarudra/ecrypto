@@ -1,5 +1,7 @@
 # 🔐 ECRYPTO
 
+![ecrypto](assets/image.png)
+
 **Military-Grade Folder Encryption Tool for Windows**
 
 Encrypt entire folders into a single secure container using **XChaCha20-Poly1305** (AEAD) and **Argon2id** (KDF). Protects filenames, metadata, and contents with cutting-edge cryptography.
