@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ECRYPTO • How It Works</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <section class="hero">
+        <div>
+          <div class="tag">HOW IT WORKS</div>
+          <h1>ECRYPTO — Secure Folder Encryption, Explained Simply</h1>
+          <p>
+            ECRYPTO turns any folder into a tamper-evident, fully encrypted
+            container. This page shows the pipeline, security model, and the few
+            switches you might tweak.
+          </p>
+          <div class="cta-row">
+            <a
+              class="btn primary"
+              href="https://github.com/pandarudra/ecrypto/releases/latest"
+              >⬇ Download Latest</a
+            >
+            <a class="btn" href="https://github.com/pandarudra/ecrypto"
+              >View on GitHub</a
+            >
+            <a class="btn" href="../README.md">Back to README</a>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Flow at a Glance</h2>
+        <p class="section-lead">
+          A quick mental model. Argon2id is used only when you provide a
+          passphrase; key files skip derivation for speed and maximal entropy.
+        </p>
+        <div class="flow">
+          <div class="panel step">
+            <strong>1) Input</strong>Folder is scanned; paths and metadata
+            captured.
+          </div>
+          <div class="panel step">
+            <strong>2) Compress</strong>Folder is zipped into a single stream.
+          </div>
+          <div class="panel step">
+            <strong>3) Key</strong>Passphrase → Argon2id → 256-bit key
+            <em>or</em> load raw key file.
+          </div>
+          <div class="panel step">
+            <strong>4) Encrypt</strong>XChaCha20-Poly1305 encrypts +
+            authenticates data.
+          </div>
+          <div class="panel step">
+            <strong>5) Output</strong>Everything sealed into one `.ecrypt` file
+            with MAC.
+          </div>
+        </div>
+        <div class="badges">
+          <div class="badge">Cipher: XChaCha20-Poly1305</div>
+          <div class="badge">KDF: Argon2id (256MB, t=3)</div>
+          <div class="badge">Integrity: Poly1305 tag</div>
+          <div class="badge">Nonce: 24 bytes, random</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Encryption Pipeline</h2>
+        <p class="section-lead">
+          What happens when you run <code>ecrypto encrypt</code>.
+        </p>
+        <div class="grid">
+          <div class="panel">
+            <h3>1) Keying</h3>
+            <p>
+              Passphrase → Argon2id (m=256MB, t=3, p=1) → 256-bit key. Key files
+              skip this step.
+            </p>
+            <ul class="list-compact">
+              <li>Salt: 16 bytes, random</li>
+              <li>Nonce: 24 bytes, random per container</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>2) Pack</h3>
+            <p>
+              Folder is zipped. Filenames and structure are inside the encrypted
+              payload, so names stay private.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>3) Seal</h3>
+            <p>
+              XChaCha20-Poly1305 encrypts the compressed stream. Poly1305 tag
+              covers header + ciphertext.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>4) Emit</h3>
+            <p>
+              Header (magic, version, KDF params, salt, nonce) + ciphertext +
+              auth tag become <code>.ecrypt</code>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Decryption Pipeline</h2>
+        <p class="section-lead">
+          What happens when you run <code>ecrypto decrypt</code>.
+        </p>
+        <div class="grid">
+          <div class="panel">
+            <h3>1) Parse Header</h3>
+            <p>
+              Read magic/version, KDF params, salt, nonce, and Argon2 settings
+              if passphrase mode.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>2) Rebuild Key</h3>
+            <p>
+              Passphrase → Argon2id using stored params, or load the provided
+              key file.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>3) Verify + Decrypt</h3>
+            <p>
+              Poly1305 tag is checked; if valid, ciphertext is decrypted to the
+              original ZIP stream.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>4) Restore</h3>
+            <p>
+              ZIP is expanded, recreating the folder tree and file contents.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Security Model</h2>
+        <p class="section-lead">What ECRYPTO defends, and what it cannot.</p>
+        <div class="panel">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Protects</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Unauthorized access</td>
+                <td>256-bit XChaCha20-Poly1305</td>
+              </tr>
+              <tr>
+                <td>Filename/metadata leakage</td>
+                <td>All names live inside encrypted ZIP</td>
+              </tr>
+              <tr>
+                <td>Tampering</td>
+                <td>Poly1305 tag on header + ciphertext</td>
+              </tr>
+              <tr>
+                <td>Brute force</td>
+                <td>Argon2id slows guessing; use strong passphrases</td>
+              </tr>
+            </tbody>
+          </table>
+          <table class="table" style="margin-top: 14px">
+            <thead>
+              <tr>
+                <th>Does not protect</th>
+                <th>Mitigation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Weak passphrases</td>
+                <td>Use 16+ chars or key files</td>
+              </tr>
+              <tr>
+                <td>Malware/keyloggers</td>
+                <td>Keep OS clean; use AV</td>
+              </tr>
+              <tr>
+                <td>Physical RAM capture</td>
+                <td>Use full-disk encryption; minimize exposure</td>
+              </tr>
+              <tr>
+                <td>Key loss</td>
+                <td>Back up keys; no recovery if lost</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Tune Performance</h2>
+        <p class="section-lead">
+          Argon2id settings affect speed and resistance to guessing. Use the
+          strongest your hardware allows.
+        </p>
+        <div class="grid">
+          <div class="panel">
+            <h3>Faster (lower security)</h3>
+            <pre>
+ecrypto encrypt --in folder --out backup.ecrypt \
+  --pass "pass" --argon-m 131072 --argon-t 2</pre
+            >
+            <p class="list-compact">Good for older machines (128MB, t=2).</p>
+          </div>
+          <div class="panel">
+            <h3>Balanced (default)</h3>
+            <pre>
+ecrypto encrypt --in folder --out backup.ecrypt \
+  --pass "pass" --argon-m 262144 --argon-t 3</pre
+            >
+            <p class="list-compact">Ships by default (256MB, t=3).</p>
+          </div>
+          <div class="panel">
+            <h3>Stronger (slower)</h3>
+            <pre>
+ecrypto encrypt --in folder --out backup.ecrypt \
+  --pass "pass" --argon-m 524288 --argon-t 5</pre
+            >
+            <p class="list-compact">For critical data (512MB, t=5).</p>
+          </div>
+          <div class="panel">
+            <h3>Fastest (key files)</h3>
+            <pre>
+ecrypto encrypt --in folder --out backup.ecrypt \
+  --key-file mykey.txt</pre
+            >
+            <p class="list-compact">Skips Argon2id; depends on key secrecy.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>File Format Snapshot</h2>
+        <p class="section-lead">
+          Headers are authenticated. Nothing meaningful is left in plaintext.
+        </p>
+        <div class="panel">
+          <pre>
+.ecrypt (v1)
+┌─ Header ────────────────────────────────┐
+│ magic: "ECRYPT01"                       │
+│ version: 1                              │
+│ kdf: 0=raw, 1=argon2id                  │
+│ argon2: m, t, p                         │
+│ salt: 16 bytes                          │
+│ nonce: 24 bytes                         │
+└─ Encrypted payload (XChaCha20-Poly1305) ┘
+  compressed ZIP of the folder
+  auth tag (16 bytes)</pre
+          >
+        </div>
+      </section>
+
+      <section>
+        <h2>Quick Commands</h2>
+        <p class="section-lead">
+          Minimal examples. Quotes protect paths with spaces.
+        </p>
+        <div class="grid">
+          <div class="panel">
+            <h3>Encrypt with passphrase</h3>
+            <pre>
+ecrypto encrypt --in "C:\MyFolder" \
+  --out "backup.ecrypt" \
+  --pass "YourStrongPassphrase123!"</pre
+            >
+          </div>
+          <div class="panel">
+            <h3>Encrypt with key file</h3>
+            <pre>
+ecrypto keygen --out mykey.txt
+
+ecrypto encrypt --in "C:\MyFolder" \
+  --out "backup.ecrypt" \
+  --key-file mykey.txt</pre
+            >
+          </div>
+          <div class="panel">
+            <h3>Decrypt</h3>
+            <pre>
+ecrypto decrypt --in "backup.ecrypt" \
+  --out "restored" \
+  --pass "YourStrongPassphrase123!"</pre
+            >
+          </div>
+          <div class="panel">
+            <h3>Inspect container</h3>
+            <pre>ecrypto info --file "backup.ecrypt"</pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Troubleshooting (Fast)</h2>
+        <div class="grid">
+          <div class="panel">
+            <h3>Auth tag mismatch</h3>
+            <p>Usually wrong passphrase/key or file corruption.</p>
+            <ul class="list-compact">
+              <li>Recheck passphrase / correct key file</li>
+              <li>Re-download the container</li>
+              <li>Run <code>ecrypto info --file file.ecrypt</code></li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Access denied on output</h3>
+            <p>Output path must be a file, not directory.</p>
+            <pre>ecrypto encrypt --in folder --out D:\backup.ecrypt</pre>
+          </div>
+          <div class="panel">
+            <h3>Out of memory</h3>
+            <p>Lower Argon2 memory:</p>
+            <pre>--argon-m 131072 --argon-t 2</pre>
+          </div>
+          <div class="panel">
+            <h3>Slow performance</h3>
+            <p>
+              Use key files or reduce Argon2 parameters; prefer SSD over HDD.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">
+        Made with care for privacy and security • ECRYPTO
+      </div>
+    </div>
+  </body>
+</html>
