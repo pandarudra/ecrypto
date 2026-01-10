@@ -24,7 +24,7 @@ func PromptUser(label string, defaultVal string) string {
 		Foreground(ColorSecondary).
 		Bold(true)
 	
-	fmt.Print(inlineStyle.Render(prompt))
+	fmt.Print(inlineStyle.Render("› " + prompt))
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
 
@@ -68,13 +68,22 @@ func SelectOption(title string, options []string) int {
 
 // SelectFile displays file browser
 func SelectFile(title string) string {
-	for {
+	maxAttempts := 3
+	for i := 0; i < maxAttempts; i++ {
 		path := PromptUser(title, "")
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
-		fmt.Println(ErrorStyle.Render("File not found. Try again."))
+		remaining := maxAttempts - i - 1
+		if remaining > 0 {
+			fmt.Println(ErrorStyle.Render(fmt.Sprintf("✗ File not found. %d attempt(s) remaining.", remaining)))
+		} else {
+			fmt.Println(ErrorStyle.Render("✗ Too many invalid attempts. Returning to menu."))
+			Pause()
+			return ""
+		}
 	}
+	return ""
 }
 
 // SelectFileOrSkip displays file browser with ability to cancel
@@ -95,14 +104,23 @@ func SelectFileOrSkip(title string) string {
 
 // SelectFolder displays folder browser
 func SelectFolder(title string) string {
-	for {
+	maxAttempts := 3
+	for i := 0; i < maxAttempts; i++ {
 		path := PromptUser(title, "")
 		info, err := os.Stat(path)
 		if err == nil && info.IsDir() {
 			return path
 		}
-		fmt.Println(ErrorStyle.Render("Folder not found. Try again."))
+		remaining := maxAttempts - i - 1
+		if remaining > 0 {
+			fmt.Println(ErrorStyle.Render(fmt.Sprintf("✗ Folder not found. %d attempt(s) remaining.", remaining)))
+		} else {
+			fmt.Println(ErrorStyle.Render("✗ Too many invalid attempts. Returning to menu."))
+			Pause()
+			return ""
+		}
 	}
+	return ""
 }
 
 // PrintSuccess displays success message
@@ -114,7 +132,7 @@ func PrintSuccess(msg string) {
 		BorderForeground(ColorSuccess).
 		Padding(0, 2).
 		Bold(true)
-	fmt.Println(box.Render("[SUCCESS] " + msg))
+	fmt.Println(box.Render("✓ SUCCESS: " + msg))
 	fmt.Println()
 }
 
@@ -127,7 +145,7 @@ func PrintError(msg string) {
 		BorderForeground(ColorError).
 		Padding(0, 2).
 		Bold(true)
-	fmt.Println(box.Render("[ERROR] " + msg))
+	fmt.Println(box.Render("✗ ERROR: " + msg))
 	fmt.Println()
 }
 
@@ -140,7 +158,7 @@ func PrintWarning(msg string) {
 		BorderForeground(ColorWarning).
 		Padding(0, 2).
 		Bold(true)
-	fmt.Println(box.Render("[WARNING] " + msg))
+	fmt.Println(box.Render("⚠ WARNING: " + msg))
 	fmt.Println()
 }
 
@@ -152,7 +170,7 @@ func PrintInfo(msg string) {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorPrimary).
 		Padding(0, 2)
-	fmt.Println(box.Render("[INFO] " + msg))
+	fmt.Println(box.Render("ℹ INFO: " + msg))
 	fmt.Println()
 }
 
@@ -163,8 +181,10 @@ func ClearScreen() {
 
 // Pause waits for user to press Enter
 func Pause() {
+	fmt.Println()
 	fmt.Print(HelpStyle.Render("Press Enter to continue..."))
 	bufio.NewReader(os.Stdin).ReadString('\n')
+	fmt.Println()
 }
 
 // parseChoice converts user input to valid option index
@@ -220,12 +240,18 @@ func PrintMenu() {
 // ConfirmAction asks for confirmation
 func ConfirmAction(msg string) bool {
 	inlineStyle := lipgloss.NewStyle().
-		Foreground(ColorSecondary).
+		Foreground(ColorWarning).
 		Bold(true)
-	fmt.Print(inlineStyle.Render(msg + " (yes/no): "))
+	fmt.Println()
+	fmt.Print(inlineStyle.Render("⚠ " + msg + " (type 'yes' to confirm): "))
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
-	return strings.ToLower(strings.TrimSpace(input)) == "yes"
+	result := strings.ToLower(strings.TrimSpace(input)) == "yes"
+	if !result {
+		fmt.Println(HelpStyle.Render("✓ Operation cancelled."))
+	}
+	fmt.Println()
+	return result
 }
 
 // GetFileSize returns human-readable file size

@@ -26,6 +26,7 @@ Protects filenames, metadata, and contents with cutting-edge cryptography.
 - 📦 **Single Secure Container**: Compress + encrypt entire folders into `.ecrypt` files
 - 🎨 **Beautiful Interactive UI**: User-friendly menu system or powerful command-line interface
 - 🛡️ **Secure by Default**: Argon2id KDF (256MB memory, 3 iterations) - winner of Password Hashing Competition
+- ↶ **Undo Feature**: Easily decrypt and restore recently encrypted folders
 - ⚡ **Fast & Lightweight**: Single binary, zero dependencies, cross-platform ready
 - 🔍 **Tamper Detection**: Authentication tags prevent file modifications
 - 📊 **Progress Tracking**: Real-time visual feedback during operations
@@ -114,7 +115,8 @@ You'll see an intuitive interactive menu:
 [2] [DECRYPT]  Decrypt a File
 [3] [KEYGEN]   Generate Encryption Key
 [4] [INFO]     View Container Info
-[5] [EXIT]     Quit Application
+[5] [UNDO]     Undo Recent Operation
+[6] [EXIT]     Quit Application
 ```
 
 **Step-by-step walkthrough:**
@@ -225,6 +227,24 @@ foreach ($folder in $folders) {
 ```
 
 **Use Case:** Automated backups, CI/CD pipelines, scheduled tasks
+
+### ↶ Example 5: Undo & Restore
+
+Accidentally encrypted something? Restore it with one click:
+
+```powershell
+# Encrypted a folder
+.\ecrypto.exe encrypt --in "C:\MyFiles" --out "backup.ecrypt" --pass "password"
+
+# Later: Need to undo the encryption
+.\ecrypto.exe
+→ [5] [UNDO] Undo Recent Operation
+→ Select: C:\MyFiles | 450 files | 1.24 GB
+→ Passphrase: password
+→ ✓ Restored to: C:\MyFiles_restored
+```
+
+**Use Case:** Testing encryption settings, accidental encryption, backup verification
 
 ---
 
@@ -657,6 +677,12 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - 💡 **[Request a Feature](https://github.com/pandarudra/ecrypto/issues/new?labels=enhancement)**
 - 📖 **[Documentation & Wiki](https://github.com/pandarudra/ecrypto/wiki)**
 - 💬 **[Discussions](https://github.com/pandarudra/ecrypto/discussions)**
+
+### Documentation
+
+- 📘 **[How It Works](docs/index.html)** - Visual explanation of encryption pipeline
+- ↶ **[Undo Feature](docs/UNDO_FEATURE.md)** - Restore encrypted folders easily
+- 🎨 **[UI Enhancements](docs/UI_ENHANCEMENTS.md)** - User-friendly terminal experience
 
 ### Related Resources
 
