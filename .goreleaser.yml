@@ -4,14 +4,22 @@ builds:
   - id: ecrypto
     main: ./main.go
     binary: ecrypto
+    goos:
+      - linux
+      - darwin
+      - windows
     goarch:
       - amd64
       - arm64
-    goos:
-      - windows
-      - linux
-      - darwin
 
 archives:
   - format: binary
-    name_template: "{{ .Binary }}-{{ .OS }}-{{ .Arch }}"
+    name_template: "ecrypto-{{ .Os }}-{{ .Arch }}{{ if eq .Os \"windows\" }}.exe{{ end }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+release:
+  github:
+    owner: pandarudra
+    name: ecrypto
