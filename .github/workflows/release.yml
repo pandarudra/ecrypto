@@ -1,37 +1,74 @@
 name: Release
 
 on:
-    push:
-        tags:
-            - "v*"
+  push:
+    tags:
+      - "v*"
 
 permissions:
-    contents: write
+  contents: write
 
 jobs:
-    build-windows:
-        runs-on: windows-latest
-        steps:
-            - uses: actions/checkout@v4
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            ext: ""
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            ext: ""
 
-            - name: Set up Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: "1.21"
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            ext: ""
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            ext: ""
 
-            - name: Build
-              shell: pwsh
-              run: |
-                  $ErrorActionPreference = "Stop"
-                  mkdir dist
-                  go build -ldflags "-s -w -X main.Version=${{ github.ref_name }}" -o dist/ecrypto-windows-amd64.exe
-                  Get-FileHash dist/ecrypto-windows-amd64.exe -Algorithm SHA256 | Out-File dist/SHA256.txt
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            ext: ".exe"
+          # Optional:
+          # - os: windows-latest
+          #   goos: windows
+          #   goarch: arm64
+          #   ext: ".exe"
 
-            - name: Create GitHub Release
-              uses: softprops/action-gh-release@v2
-              with:
-                  files: |
-                      dist/ecrypto-windows-amd64.exe
-                      dist/SHA256.txt
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
+      - name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+        run: |
+          mkdir dist
+          GOOS=${{ matrix.goos }} \
+          GOARCH=${{ matrix.goarch }} \
+          go build -ldflags "-s -w -X main.Version=${{ github.ref_name }}" \
+          -o dist/ecrypto-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+
+      - name: Create SHA256
+        shell: bash
+        run: |
+          cd dist
+          sha256sum * > SHA256-${{ matrix.goos }}-${{ matrix.goarch }}.txt
+
+      - name: Upload assets to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/ecrypto-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+            dist/SHA256-${{ matrix.goos }}-${{ matrix.goarch }}.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

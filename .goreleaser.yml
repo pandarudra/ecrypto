@@ -1,0 +1,17 @@
+project_name: ecrypto
+
+builds:
+  - id: ecrypto
+    main: ./main.go
+    binary: ecrypto
+    goarch:
+      - amd64
+      - arm64
+    goos:
+      - windows
+      - linux
+      - darwin
+
+archives:
+  - format: binary
+    name_template: "{{ .Binary }}-{{ .OS }}-{{ .Arch }}"
