@@ -1,60 +1,76 @@
+#!/usr/bin/env node
+
+const os = require("os");
+const path = require("path");
 const https = require("https");
 const fs = require("fs");
-const path = require("path");
-const os = require("os");
 
-const version = process.env.npm_package_version
-  ? "v" + process.env.npm_package_version
-  : "v1.0.3";
-
-const platform = os.platform();
-const arch = os.arch();
-
-const binDir = path.join(__dirname, "bin");
-if (!fs.existsSync(binDir)) fs.mkdirSync(binDir, { recursive: true });
+const version = "v1.0.6";
 
 function getBinaryName() {
-  if (platform === "win32") {
-    return arch === "arm64"
-      ? "ecrypto-windows-arm64.exe"
-      : "ecrypto-windows-amd64.exe";
-  }
-  if (platform === "darwin") {
-    return arch === "arm64"
-      ? "ecrypto-darwin-arm64"
-      : "ecrypto-darwin-amd64";
-  }
-  if (platform === "linux") {
-    return arch === "arm64"
-      ? "ecrypto-linux-arm64"
-      : "ecrypto-linux-amd64";
+  const platform = os.platform();
+  const arch = os.arch();
+
+  const archMap = {
+    x64: "amd64",
+    arm64: "arm64",
+  };
+
+  const platformMap = {
+    win32: "windows",
+    darwin: "darwin",
+    linux: "linux",
+  };
+
+  const goos = platformMap[platform];
+  const goarch = archMap[arch];
+
+  if (!goos || !goarch) {
+    console.error(`Unsupported platform or architecture: ${platform} ${arch}`);
+    process.exit(1);
+    return;
   }
 
-  throw new Error(`Unsupported platform: ${platform} ${arch}`);
+  return goos === "windows"
+    ? `ecrypto-${goos}-${goarch}.exe`
+    : `ecrypto-${goos}-${goarch}`;
 }
 
-const filename = getBinaryName();
-const output = path.join(binDir, platform === "win32" ? "ecrypto.exe" : "ecrypto");
+function download(url, dest, cb) {
+  https.get(url, (res) => {
 
-const downloadUrl = `https://github.com/pandarudra/ecrypto/releases/download/${version}/${filename}`;
-
-console.log(`Downloading ECRYPTO binary for ${platform}-${arch}:`);
-console.log(downloadUrl);
-
-https.get(downloadUrl, (res) => {
-  if (res.statusCode !== 200) {
-    console.error("Failed to download:", res.statusCode);
-    process.exit(1);
-  }
-
-  const file = fs.createWriteStream(output);
-  res.pipe(file);
-
-  file.on("finish", () => {
-    file.close();
-    if (platform !== "win32") {
-      fs.chmodSync(output, 0o755);
+    // Follow redirects 
+    if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+      return download(res.headers.location, dest, cb);
     }
-    console.log("✔ ECRYPTO installed successfully");
+
+    if (res.statusCode !== 200) {
+      console.error("❌ Failed to download:", res.statusCode, url);
+      process.exit(1);
+    }
+
+    const file = fs.createWriteStream(dest);
+    res.pipe(file);
+
+    file.on("finish", () => file.close(cb));
   });
+}
+
+const fileName = getBinaryName();
+const downloadUrl = `https://github.com/pandarudra/ecrypto/releases/download/${version}/${fileName}`;
+
+console.log(`⬇️  Downloading ECRYPTO binary: ${downloadUrl}`);
+
+// bin folder should be inside npm/ folder
+const binDir = path.join(__dirname, "bin");
+const outputPath = path.join(binDir, "ecrypto");
+
+// Ensure bin/ exists
+fs.mkdirSync(binDir, { recursive: true });
+
+download(downloadUrl, outputPath, () => {
+  if (os.platform() !== "win32") {
+    fs.chmodSync(outputPath, 0o755);
+  }
+  console.log("✅ ECRYPTO installed successfully.");
 });
