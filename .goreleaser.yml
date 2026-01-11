@@ -14,7 +14,7 @@ builds:
 
 archives:
   - format: binary
-    name_template: "ecrypto-{{ .Os }}-{{ .Arch }}{{ if eq .Os \"windows\" }}.exe{{ end }}"
+    name_template: "ecrypto-{{ .Os }}-{{ .Arch }}"
 
 checksum:
   name_template: "checksums.txt"
