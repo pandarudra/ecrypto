@@ -733,16 +733,34 @@ Special thanks to the cryptography community for their research and implementati
 
 ## 🎯 Roadmap
 
-Planned features for future releases:
+## 🚀 Planned Features
 
-- [ ] npm package for easy installation
-- [ ] GUI application (Windows/macOS/Linux)
-- [ ] Compression algorithm selection (ZSTD, GZIP)
-- [ ] Multiple key support (multi-party encryption)
-- [ ] Hardware security module (HSM) integration
-- [ ] Cloud storage integration (S3, Azure Blob)
-- [ ] Automated backup scheduling
-- [ ] Mobile app (iOS/Android)
+The following features are planned for upcoming releases to improve functionality, security, and cross-platform support:
+
+- [ ] **NPM Package Support**  
+      Easy installation and integration via `npm`.
+
+- [ ] **Cross-Platform GUI Application**  
+      Desktop applications for **Windows**, **macOS**, and **Linux**.
+
+- [ ] **Compression Algorithm Selection**  
+      Support for multiple compression algorithms such as **ZSTD** and **GZIP**.
+
+- [ ] **Multi-Key Encryption Support**  
+      Enable multi-party encryption using multiple encryption keys.
+
+- [ ] **Hardware Security Module (HSM) Integration**  
+      Secure key management and cryptographic operations using HSMs.
+
+- [ ] **Cloud Storage Integration**  
+      Built-in support for **AWS S3** and **Azure Blob Storage**.
+
+- [ ] **Automated Backup Scheduling**  
+      Schedule and manage automated backups with configurable intervals.
+
+- [ ] **Mobile Application**  
+      Companion mobile apps for **iOS** and **Android** platforms.
+
 
 Vote for features in [Discussions](https://github.com/pandarudra/ecrypto/discussions/categories/ideas)!
 
