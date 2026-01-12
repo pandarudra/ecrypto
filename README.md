@@ -76,11 +76,23 @@ chmod +x ecrypto
 sudo mv ecrypto /usr/local/bin/
 ```
 
-### Option 2: Install via npm (Coming Soon)
+### Option 2: Install via npm (Global CLI)
+
+Quickly install ECRYPTO as a global command-line tool:
 
 ```bash
-npm install -g ecrypto
+npm install -g ecrypto-cli
+
+# Then use it anywhere
+ecrypto-cli --help
 ```
+
+**Benefits:**
+
+- Available from any directory
+- Automatic updates: `npm update -g ecrypto-cli`
+- Cross-platform (Windows, macOS, Linux)
+- No manual binary management
 
 ### Option 3: Build from Source
 
@@ -90,6 +102,9 @@ npm install -g ecrypto
 git clone https://github.com/pandarudra/ecrypto.git
 cd ecrypto
 go build -o ecrypto
+
+# On Windows, this creates ecrypto.exe
+# On macOS/Linux, run: chmod +x ecrypto
 ```
 
 ---
@@ -129,33 +144,31 @@ You'll see an intuitive interactive menu:
 
 ### ⚡ Command-Line Mode (For Power Users)
 
-#### Encrypt a folder with passphrase:
+#### If installed via npm:
+
+```bash
+# All commands use 'ecrypto-cli' instead of '.\ecrypto.exe'
+ecrypto-cli encrypt --in "path/to/folder" --out "backup.ecrypt" --pass "YourPassword"
+ecrypto-cli decrypt --in "backup.ecrypt" --out "restored" --pass "YourPassword"
+ecrypto-cli keygen --out mykey.txt
+```
+
+#### If using direct binary:
 
 ```powershell
+# Encrypt a folder with passphrase:
 .\ecrypto.exe encrypt --in "C:\MyFolder" --out "backup.ecrypt" --pass "YourStrongPassphrase123!"
-```
 
-#### Decrypt a container:
-
-```powershell
+# Decrypt a container:
 .\ecrypto.exe decrypt --in "backup.ecrypt" --out "restored" --pass "YourStrongPassphrase123!"
-```
 
-#### Generate a random 32-byte encryption key:
-
-```powershell
+# Generate a random 32-byte encryption key:
 .\ecrypto.exe keygen --out mykey.txt
-```
 
-#### Encrypt with a raw key file (maximum security):
-
-```powershell
+# Encrypt with a raw key file (maximum security):
 .\ecrypto.exe encrypt --in "C:\MyFolder" --out "backup.ecrypt" --key-file mykey.txt
-```
 
-#### View container information (no decryption required):
-
-```powershell
+# View container information (no decryption required):
 .\ecrypto.exe info --file backup.ecrypt
 ```
 
