@@ -1,0 +1,33 @@
+{
+  "name": "ecrypto-cli",
+  "version": "1.0.5",
+  "description": "Military-grade folder encryption tool (npm global installer)",
+  "bin": {
+    "ecrypto": "bin/launcher.js",
+    "ecrypto-cli": "bin/launcher.js"
+  },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "files": [
+    "bin/",
+    "postinstall.js"
+  ],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "homepage": "https://github.com/pandarudra/ecrypto",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pandarudra/ecrypto.git"
+  },
+  "keywords": [
+    "encryption",
+    "crypto",
+    "security",
+    "cli"
+  ],
+  "license": "MIT"
+}
