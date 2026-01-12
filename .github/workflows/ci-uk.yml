@@ -1,0 +1,33 @@
+name: CI UK
+
+on:
+    push:
+        branches: [uk]
+    pull_request:
+        branches: [uk]
+
+jobs:
+    test-build:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "1.21"
+
+            - name: Install deps
+              run: go mod download
+
+            - name: Tidy
+              run: go mod tidy
+
+            - name: Vet
+              run: go vet ./...
+
+            - name: Test
+              run: go test -v ./...
+
+            - name: Build
+              run: go build -o ecrypto.exe
