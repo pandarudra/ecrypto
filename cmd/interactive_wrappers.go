@@ -8,6 +8,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 // EncryptWithPassphrase encrypts folder with passphrase
@@ -135,7 +137,28 @@ func DecryptWithPassphrase(inFile, outDir, pass string, progressCallback archive
 		return err
 	}
 
-	return archive.UnzipToWithProgress(outDir, pt, progressCallback)
+	// Try to unzip first (for folder encryption)
+	err = archive.UnzipToWithProgress(outDir, pt, progressCallback)
+	if err != nil {
+		// If unzip fails, it's likely a single file encryption
+		// Extract original filename from input file (remove .ecrypt extension)
+		originalName := filepath.Base(inFile)
+		if strings.HasSuffix(originalName, ".ecrypt") {
+			originalName = strings.TrimSuffix(originalName, ".ecrypt")
+		}
+		
+		// Write decrypted data as a single file
+		outputPath := filepath.Join(outDir, originalName)
+		if writeErr := os.WriteFile(outputPath, pt, 0o644); writeErr != nil {
+			return fmt.Errorf("failed to unzip and failed to write as file: %v (original unzip error: %v)", writeErr, err)
+		}
+		
+		if progressCallback != nil {
+			progressCallback(originalName)
+		}
+	}
+	
+	return nil
 }
 
 // DecryptWithKeyFile decrypts file with key file
@@ -168,7 +191,28 @@ func DecryptWithKeyFile(inFile, outDir, keyFile string, progressCallback archive
 		return err
 	}
 
-	return archive.UnzipToWithProgress(outDir, pt, progressCallback)
+	// Try to unzip first (for folder encryption)
+	err = archive.UnzipToWithProgress(outDir, pt, progressCallback)
+	if err != nil {
+		// If unzip fails, it's likely a single file encryption
+		// Extract original filename from input file (remove .ecrypt extension)
+		originalName := filepath.Base(inFile)
+		if strings.HasSuffix(originalName, ".ecrypt") {
+			originalName = strings.TrimSuffix(originalName, ".ecrypt")
+		}
+		
+		// Write decrypted data as a single file
+		outputPath := filepath.Join(outDir, originalName)
+		if writeErr := os.WriteFile(outputPath, pt, 0o644); writeErr != nil {
+			return fmt.Errorf("failed to unzip and failed to write as file: %v (original unzip error: %v)", writeErr, err)
+		}
+		
+		if progressCallback != nil {
+			progressCallback(originalName)
+		}
+	}
+	
+	return nil
 }
 
 // GenerateKey creates a random 32-byte key
@@ -213,4 +257,112 @@ func InfoPrint(inFile string) error {
 	fmt.Printf("Encrypted data size: %d bytes\n", len(data)-crypto.HeaderSize())
 
 	return nil
+}
+
+// EncryptFileWithPassphrase encrypts a single file with passphrase
+func EncryptFileWithPassphrase(filePath, outFile, pass string, progressCallback archive.ProgressCallback) error {
+	h := &crypto.HeaderV1{
+		Magic:   [8]byte{'E', 'C', 'R', 'Y', 'P', 'T', '0', '1'},
+		Version: 1,
+		KDF:     1,
+	}
+
+	if _, err := rand.Read(h.Salt[:]); err != nil {
+		return err
+	}
+
+	key := crypto.DeriveKeyArgon2id(pass, h.Salt[:], encArgonM, encArgonT, encArgonP)
+	h.ArgonM, h.ArgonT, h.ArgonP = encArgonM, encArgonT, encArgonP
+
+	if _, err := rand.Read(h.Nonce[:]); err != nil {
+		return err
+	}
+
+	// Read file
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	if progressCallback != nil {
+		progressCallback(filepath.Base(filePath))
+	}
+
+	aad := h.Encode()
+	ct, err := crypto.EncryptAEAD(key, fileData, aad, h.Nonce[:])
+	if err != nil {
+		return err
+	}
+
+	tmp := outFile + ".tmp"
+	f, err := os.Create(tmp)
+	if err != nil {
+		return err
+	}
+	if _, err := f.Write(aad); err != nil {
+		f.Close()
+		return err
+	}
+	if _, err := f.Write(ct); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+
+	return os.Rename(tmp, outFile)
+}
+
+// EncryptFileWithKeyFile encrypts a single file with key file
+func EncryptFileWithKeyFile(filePath, outFile, keyFile string, progressCallback archive.ProgressCallback) error {
+	h := &crypto.HeaderV1{
+		Magic:   [8]byte{'E', 'C', 'R', 'Y', 'P', 'T', '0', '1'},
+		Version: 1,
+		KDF:     0,
+	}
+
+	key, err := crypto.ReadKeyFromFile(keyFile)
+	if err != nil {
+		return err
+	}
+
+	if _, err := rand.Read(h.Nonce[:]); err != nil {
+		return err
+	}
+
+	// Read file
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	if progressCallback != nil {
+		progressCallback(filepath.Base(filePath))
+	}
+
+	aad := h.Encode()
+	ct, err := crypto.EncryptAEAD(key, fileData, aad, h.Nonce[:])
+	if err != nil {
+		return err
+	}
+
+	tmp := outFile + ".tmp"
+	f, err := os.Create(tmp)
+	if err != nil {
+		return err
+	}
+	if _, err := f.Write(aad); err != nil {
+		f.Close()
+		return err
+	}
+	if _, err := f.Write(ct); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+
+	return os.Rename(tmp, outFile)
 }

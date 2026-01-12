@@ -16,8 +16,8 @@ func RunInteractiveMenu() error {
 		PrintMenu()
 
 		options := []string{
-			"[ENCRYPT]  Encrypt a Folder",
-			"[DECRYPT]  Decrypt a File",
+			"[ENCRYPT]  Encrypt a Folder/File",
+			"[DECRYPT]  Decrypt a Folder/File",
 			"[KEYGEN]   Generate Encryption Key",
 			"[INFO]     View Container Info",
 			"[UNDO]     Undo Recent Operation",
@@ -80,30 +80,76 @@ func encryptInteractive() error {
 		Padding(1, 4).
 		Align(lipgloss.Center).
 		Width(60)
-	fmt.Println(headerBox.Render("🔒 ENCRYPT FOLDER"))
+	fmt.Println(headerBox.Render("🔒 ENCRYPT"))
 	fmt.Println()
-	PrintInfo("Let's encrypt your folder securely in 3 easy steps")
+	PrintInfo("Let's encrypt your data securely")
 
-	// Step 1: Select folder
+	// Step 0: Choose between file or folder
 	fmt.Println(lipgloss.NewStyle().
 		Foreground(ColorPrimary).
 		Bold(true).
-		Render("\nStep 1: Select Folder to Encrypt"))
-	fmt.Println(lipgloss.NewStyle().
-		Foreground(ColorDark).
-		Italic(true).
-		Render("Tip: Copy-paste or type the full path to your folder"))
+		Render("\nStep 1: What do you want to encrypt?"))
 	
-	inDir := SelectFolder("Enter folder path")
-	if inDir == "" {
+	encryptOpts := []string{
+		"📁 Folder (recommended for multiple files)",
+		"📄 Single File",
+	}
+	encryptType, detectedPath, isPathProvided := SelectOptionOrPath("Encryption Type", encryptOpts)
+
+	var inPath string
+	var isFolder bool
+	
+	if isPathProvided {
+		// User pasted a path directly
+		inPath = detectedPath
+		isFolder = (encryptType == 0)
+		if isFolder {
+			fmt.Println(HelpStyle.Render("✓ Detected folder: " + filepath.Base(inPath)))
+		} else {
+			fmt.Println(HelpStyle.Render("✓ Detected file: " + filepath.Base(inPath)))
+		}
+	} else if encryptType == 0 {
+		// Encrypt folder
+		fmt.Println(lipgloss.NewStyle().
+			Foreground(ColorDark).
+			Italic(true).
+			Render("Tip: Copy-paste or type the full path to your folder"))
+		inPath = SelectFolder("Enter folder path")
+		isFolder = true
+	} else {
+		// Encrypt file
+		fmt.Println(lipgloss.NewStyle().
+			Foreground(ColorDark).
+			Italic(true).
+			Render("Tip: Copy-paste or type the full path to your file"))
+		inPath = SelectFile("Enter file path")
+		isFolder = false
+	}
+
+	if inPath == "" {
 		return nil
 	}
 
-	// Show folder info
-	folderName := filepath.Base(inDir)
-	size, fileCount, _ := CalculateFolderSize(inDir)
-	fmt.Println(HelpStyle.Render(fmt.Sprintf("📁 Folder: %s | 📄 Files: %d | 💾 Size: %s", 
-		folderName, fileCount, FormatBytes(size))))
+	// Show source info
+	var size int64
+	var fileCount int
+	var displayName string
+	
+	if isFolder {
+		displayName = filepath.Base(inPath)
+		size, fileCount, _ = CalculateFolderSize(inPath)
+		fmt.Println(HelpStyle.Render(fmt.Sprintf("📁 Folder: %s | 📄 Files: %d | 💾 Size: %s", 
+			displayName, fileCount, FormatBytes(size))))
+	} else {
+		displayName = filepath.Base(inPath)
+		info, err := os.Stat(inPath)
+		if err == nil {
+			size = info.Size()
+			fileCount = 1
+		}
+		fmt.Println(HelpStyle.Render(fmt.Sprintf("📄 File: %s | 💾 Size: %s", 
+			displayName, FormatBytes(size))))
+	}
 	
 	// Step 2: Output location
 	fmt.Println()
@@ -112,15 +158,15 @@ func encryptInteractive() error {
 		Bold(true).
 		Render("Step 2: Choose Output Location"))
 	
-	defaultOut := filepath.Join(filepath.Dir(inDir), folderName+".ecrypt")
+	defaultOut := filepath.Join(filepath.Dir(inPath), displayName+".ecrypt")
 	fmt.Println(HelpStyle.Render(fmt.Sprintf("Default: %s", defaultOut)))
 	
-	outFile := PromptUser("Output file path (press Enter to use default)", defaultOut)
+	outFile := strings.Trim(PromptUser("Output file path (press Enter to use default)", defaultOut), "\"")
 	
 	// Make absolute path
 	if !filepath.IsAbs(outFile) {
 		if filepath.Dir(outFile) == "." {
-			saveDir := PromptUser("Save location (directory)", filepath.Dir(inDir))
+			saveDir := strings.Trim(PromptUser("Save location (directory)", filepath.Dir(inPath)), "\"")
 			outFile = filepath.Join(saveDir, outFile)
 		} else {
 			absPath, err := filepath.Abs(outFile)
@@ -189,7 +235,7 @@ func encryptInteractive() error {
 			fmt.Println()
 			
 			defaultKeyFile := filepath.Join(filepath.Dir(outFile), "encryption_key.txt")
-			keyFile = PromptUser("Save key to file", defaultKeyFile)
+			keyFile = strings.Trim(PromptUser("Save key to file", defaultKeyFile), "\"")
 			
 			// Make absolute
 			if !filepath.IsAbs(keyFile) {
@@ -218,20 +264,26 @@ func encryptInteractive() error {
 
 	// Confirmation before encryption
 	fmt.Println()
+	confirmMsg := ""
+	if isFolder {
+		confirmMsg = fmt.Sprintf("📁 Encrypting folder with %d file(s) (%s)\n▶ Output: %s", fileCount, FormatBytes(size), filepath.Base(outFile))
+	} else {
+		confirmMsg = fmt.Sprintf("📄 Encrypting file (%s)\n▶ Output: %s", FormatBytes(size), filepath.Base(outFile))
+	}
 	fmt.Println(lipgloss.NewStyle().
 		Foreground(ColorDark).
 		Italic(true).
 		Padding(0, 2).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorDark).
-		Render(fmt.Sprintf("📁 Encrypting %d file(s) (%s)\n▶ Output: %s", fileCount, FormatBytes(size), filepath.Base(outFile))))
+		Render(confirmMsg))
 	
 	if !ConfirmAction("Ready to encrypt?") {
 		Pause()
 		return nil
 	}
 
-	PrintInfo("Encrypting your folder...")
+	PrintInfo("Encrypting your data...")
 	
 	// Create and start progress tracker
 	var progress *ProgressTracker
@@ -242,17 +294,33 @@ func encryptInteractive() error {
 
 	var encErr error
 	if keyMode == 0 {
-		encErr = cmd.EncryptWithPassphrase(inDir, outFile, pass, func(filename string) {
-			if progress != nil {
-				progress.Update(filename)
-			}
-		})
+		if isFolder {
+			encErr = cmd.EncryptWithPassphrase(inPath, outFile, pass, func(filename string) {
+				if progress != nil {
+					progress.Update(filename)
+				}
+			})
+		} else {
+			encErr = cmd.EncryptFileWithPassphrase(inPath, outFile, pass, func(filename string) {
+				if progress != nil {
+					progress.Update(filename)
+				}
+			})
+		}
 	} else {
-		encErr = cmd.EncryptWithKeyFile(inDir, outFile, keyFile, func(filename string) {
-			if progress != nil {
-				progress.Update(filename)
-			}
-		})
+		if isFolder {
+			encErr = cmd.EncryptWithKeyFile(inPath, outFile, keyFile, func(filename string) {
+				if progress != nil {
+					progress.Update(filename)
+				}
+			})
+		} else {
+			encErr = cmd.EncryptFileWithKeyFile(inPath, outFile, keyFile, func(filename string) {
+				if progress != nil {
+					progress.Update(filename)
+				}
+			})
+		}
 	}
 	
 	if progress != nil {
@@ -266,7 +334,7 @@ func encryptInteractive() error {
 		history := NewOperationHistory()
 		history.AddOperation(Operation{
 			Type:       "encrypt",
-			SourcePath: inDir,
+			SourcePath: inPath,
 			OutputPath: outFile,
 			Size:       size,
 			FileCount:  fileCount,
@@ -283,7 +351,7 @@ func encryptInteractive() error {
 	history := NewOperationHistory()
 	history.AddOperation(Operation{
 		Type:       "encrypt",
-		SourcePath: inDir,
+		SourcePath: inPath,
 		OutputPath: outFile,
 		Size:       size,
 		FileCount:  fileCount,
@@ -292,7 +360,13 @@ func encryptInteractive() error {
 		Status:     "success",
 	})
 
-	PrintSuccess(fmt.Sprintf("Folder encrypted successfully!\n▶ Output: %s", outFile))
+	successMsg := ""
+	if isFolder {
+		successMsg = fmt.Sprintf("Folder encrypted successfully!\n▶ Output: %s", outFile)
+	} else {
+		successMsg = fmt.Sprintf("File encrypted successfully!\n▶ Output: %s", outFile)
+	}
+	PrintSuccess(successMsg)
 	Pause()
 	return nil
 }
@@ -340,7 +414,7 @@ func decryptInteractive() error {
 	defaultOutDir := filepath.Join(filepath.Dir(inFile), "restored")
 	fmt.Println(HelpStyle.Render(fmt.Sprintf("Default: %s", defaultOutDir)))
 	
-	outDir := PromptUser("Output folder path (press Enter to use default)", defaultOutDir)
+	outDir := strings.Trim(PromptUser("Output folder path (press Enter to use default)", defaultOutDir), "\"")
 	
 	// Make absolute if relative
 	if !filepath.IsAbs(outDir) {
@@ -476,7 +550,7 @@ func keygenInteractive() error {
 	choice := SelectOption("How to save this key?", saveOpt)
 
 	if choice == 0 {
-		outFile := PromptUser("Enter key file path", "encryption_key.txt")
+		outFile := strings.Trim(PromptUser("Enter key file path", "encryption_key.txt"), "\"")
 		if err := os.WriteFile(outFile, []byte(key), 0o600); err != nil {
 			PrintError(fmt.Sprintf("Failed to save key: %v", err))
 			Pause()
@@ -634,7 +708,7 @@ func undoInteractive() error {
 		Render("Step 1: Choose Output Location"))
 	fmt.Println(HelpStyle.Render(fmt.Sprintf("Default: %s", defaultRestoreDir)))
 
-	restoreDir := PromptUser("Restore to folder (press Enter for default)", defaultRestoreDir)
+	restoreDir := strings.Trim(PromptUser("Restore to folder (press Enter for default)", defaultRestoreDir), "\"")
 
 	if !filepath.IsAbs(restoreDir) {
 		absPath, err := filepath.Abs(restoreDir)

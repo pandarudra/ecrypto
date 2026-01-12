@@ -71,6 +71,8 @@ func SelectFile(title string) string {
 	maxAttempts := 3
 	for i := 0; i < maxAttempts; i++ {
 		path := PromptUser(title, "")
+		// Remove surrounding quotes if present
+		path = strings.Trim(path, "\"")
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
@@ -94,6 +96,8 @@ func SelectFileOrSkip(title string) string {
 		if path == "" {
 			return ""
 		}
+		// Remove surrounding quotes if present
+		path = strings.Trim(path, "\"")
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
@@ -107,6 +111,8 @@ func SelectFolder(title string) string {
 	maxAttempts := 3
 	for i := 0; i < maxAttempts; i++ {
 		path := PromptUser(title, "")
+		// Remove surrounding quotes if present
+		path = strings.Trim(path, "\"")
 		info, err := os.Stat(path)
 		if err == nil && info.IsDir() {
 			return path
@@ -275,4 +281,56 @@ func PrintFileInfo(path string) {
 	fmt.Printf("File: %s\n", filepath.Base(path))
 	fmt.Printf("Size: %s\n", GetFileSize(info.Size()))
 	fmt.Printf("Modified: %s\n", info.ModTime().Format("2006-01-02 15:04:05"))
+}
+
+// SelectOptionOrPath displays a menu but also accepts a file/folder path
+// Returns (choice index, detected path, is path detected)
+func SelectOptionOrPath(title string, options []string) (int, string, bool) {
+	headerStyle := lipgloss.NewStyle().
+		Foreground(ColorPrimary).
+		Bold(true).
+		Padding(0, 1).
+		Border(lipgloss.NormalBorder(), false, false, true, false).
+		BorderForeground(ColorPrimary)
+	
+	fmt.Println(headerStyle.Render(title))
+	fmt.Println()
+
+	for i, opt := range options {
+		marker := "   "
+		style := MenuItemStyle
+		if i == 0 {
+			marker = " > "
+			style = SelectedItemStyle
+		}
+		fmt.Println(style.Render(fmt.Sprintf("%s[%d] %s", marker, i+1, opt)))
+	}
+	fmt.Println()
+
+	for {
+		input := PromptUser("Select option (or paste path directly)", "1")
+		
+		// Try to parse as a menu choice first
+		if choice, err := parseChoice(input, len(options)); err == nil {
+			return choice, "", false
+		}
+		
+		// Check if it looks like a path
+		path := strings.Trim(input, "\"")
+		if strings.Contains(path, "\\") || strings.Contains(path, "/") || strings.Contains(path, ":") {
+			// Validate the path exists
+			info, err := os.Stat(path)
+			if err == nil {
+				// Auto-detect if it's a folder or file
+				if info.IsDir() {
+					return 0, path, true // 0 = folder option
+				} else {
+					return 1, path, true // 1 = file option
+				}
+			}
+			fmt.Println(ErrorStyle.Render("✗ Path not found. Enter a number (1-2) or paste a valid path."))
+		} else {
+			fmt.Println(ErrorStyle.Render("Invalid choice. Try again."))
+		}
+	}
 }
