@@ -9,4 +9,8 @@ const binary = platform === "win32" ? "ecrypto.exe" : "ecrypto";
 
 const binPath = path.join(__dirname, binary);
 
-spawn(binPath, process.argv.slice(2), { stdio: "inherit" });
+const child = spawn(binPath, process.argv.slice(2), { stdio: "inherit" });
+
+child.on("exit", (code) => {
+  process.exit(code);
+});

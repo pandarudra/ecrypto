@@ -38,8 +38,7 @@ function getBinaryName() {
 
 function download(url, dest, cb) {
   https.get(url, (res) => {
-
-    // Follow redirects 
+    // Follow redirects
     if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
       return download(res.headers.location, dest, cb);
     }
@@ -63,7 +62,8 @@ console.log(`⬇️  Downloading ECRYPTO binary: ${downloadUrl}`);
 
 // bin folder should be inside npm/ folder
 const binDir = path.join(__dirname, "bin");
-const outputPath = path.join(binDir, "ecrypto");
+const binaryName = os.platform() === "win32" ? "ecrypto.exe" : "ecrypto";
+const outputPath = path.join(binDir, binaryName);
 
 // Ensure bin/ exists
 fs.mkdirSync(binDir, { recursive: true });

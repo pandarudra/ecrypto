@@ -30,6 +30,12 @@ vendor/
 # Logs
 *.log
 
+# NPM packages
+*.tar
+*.tgz
+*.tar.gz
+node_modules/
+
 # Personal
 plan.md
 backup/
