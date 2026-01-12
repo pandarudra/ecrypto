@@ -22,11 +22,15 @@ Protects filenames, metadata, and contents with cutting-edge cryptography.
 ## ✨ Features
 
 - 🔒 **Military-Grade Encryption**: XChaCha20-Poly1305 AEAD cipher (256-bit keys)
+- � **Folder & File Support**: Encrypt entire folders or individual files
+- 🗂️ **Interactive File Browser**: Navigate your file system with visual drive and folder selection
 - 🔑 **Flexible Key Management**: Use passphrases or raw 32-byte key files
-- 📦 **Single Secure Container**: Compress + encrypt entire folders into `.ecrypt` files
+- 📦 **Single Secure Container**: Compress + encrypt into `.ecrypt` files
 - 🎨 **Beautiful Interactive UI**: User-friendly menu system or powerful command-line interface
+- 💾 **Drive Selection**: Start browsing from drive level (C:, D:, etc.) on Windows
 - 🛡️ **Secure by Default**: Argon2id KDF (256MB memory, 3 iterations) - winner of Password Hashing Competition
-- ↶ **Undo Feature**: Easily decrypt and restore recently encrypted folders
+- ↶ **Undo Feature**: Easily decrypt and restore recently encrypted data
+- 📋 **Smart Path Detection**: Auto-detects file vs folder, handles quoted paths with spaces
 - ⚡ **Fast & Lightweight**: Single binary, zero dependencies, cross-platform ready
 - 🔍 **Tamper Detection**: Authentication tags prevent file modifications
 - 📊 **Progress Tracking**: Real-time visual feedback during operations
@@ -109,6 +113,67 @@ go build -o ecrypto
 
 ---
 
+## 🎯 Interactive File Browser
+
+**New in v1.0.7!** No need to type paths manually. Navigate your file system visually:
+
+### 💾 Drive Selection
+
+Start by selecting your drive:
+
+```
+💾 Select Drive
+
+  [1] 💾 C:
+  [2] 💾 D:
+  [3] 💾 E:
+```
+
+### 📂 Folder Navigation
+
+Browse folders with visual feedback:
+
+```
+📂 Current: C:\Users\YourName
+
+  [1] ⬆️  ..
+  [2] 📁 Documents
+  [3] 📁 Downloads
+  [4] 📁 Pictures (250 MB)
+  [5] 📁 Desktop
+  [6] 📄 report.pdf (2.5 MB)
+
+Enter number to select | [S]elect current folder | [P]aste path | [Q]uit
+```
+
+**Features:**
+
+- ✅ Visual drive selection (C:, D:, etc.)
+- ✅ Navigate folders with numbers
+- ✅ See file sizes before selecting
+- ✅ Quick access to common folders (Documents, Downloads, Pictures, Desktop)
+- ✅ Still supports pasting paths directly (with or without quotes)
+- ✅ Auto-detects files vs folders
+
+### 📋 Smart Path Input
+
+Choose your preferred method:
+
+```
+Choose [1] Browse interactively or [2] Paste/Type path
+
+Option 1: Visual navigation with file browser
+Option 2: Direct path paste: C:\Users\shree\Documents\folder
+```
+
+**Handles:**
+
+- Paths with spaces: `C:\Program Files\My App`
+- Quoted paths: `"C:\My Folder\file.txt"`
+- Forward or backward slashes
+
+---
+
 ## 🚀 Quick Start
 
 ### 🎯 Interactive Mode (Perfect for Beginners!)
@@ -126,8 +191,8 @@ You'll see an intuitive interactive menu:
 ██▄▄   ██     ██▄▄██▄  ▀██▀  ██▄▄█▀   ██   ██  ██
 ██▄▄▄▄ ▀█████ ██   ██   ██   ██       ██   ▀████▀
 
-[1] [ENCRYPT]  Encrypt a Folder
-[2] [DECRYPT]  Decrypt a File
+[1] [ENCRYPT]  Encrypt a Folder/File
+[2] [DECRYPT]  Decrypt a Folder/File
 [3] [KEYGEN]   Generate Encryption Key
 [4] [INFO]     View Container Info
 [5] [UNDO]     Undo Recent Operation
@@ -137,10 +202,11 @@ You'll see an intuitive interactive menu:
 **Step-by-step walkthrough:**
 
 1. Select `[1] ENCRYPT`
-2. Enter your folder path (e.g., `C:\MyDocuments`)
-3. Choose output location (e.g., `D:\backup.ecrypt`)
-4. Enter a strong passphrase
-5. Done! Your folder is now encrypted
+2. Choose between folder or file encryption
+3. Browse your file system or paste path
+4. Choose output location
+5. Enter a strong passphrase (or use key file)
+6. Done! Your data is now encrypted
 
 ### ⚡ Command-Line Mode (For Power Users)
 
@@ -159,13 +225,16 @@ ecrypto-cli keygen --out mykey.txt
 # Encrypt a folder with passphrase:
 .\ecrypto.exe encrypt --in "C:\MyFolder" --out "backup.ecrypt" --pass "YourStrongPassphrase123!"
 
-# Decrypt a container:
+# Encrypt a single file with passphrase:
+.\ecrypto.exe encrypt --in "C:\report.pdf" --out "report.ecrypt" --pass "YourStrongPassphrase123!"
+
+# Decrypt a container (auto-detects file or folder):
 .\ecrypto.exe decrypt --in "backup.ecrypt" --out "restored" --pass "YourStrongPassphrase123!"
 
 # Generate a random 32-byte encryption key:
 .\ecrypto.exe keygen --out mykey.txt
 
-# Encrypt with a raw key file (maximum security):
+# Encrypt with a raw key file (maximum security - works for files and folders):
 .\ecrypto.exe encrypt --in "C:\MyFolder" --out "backup.ecrypt" --key-file mykey.txt
 
 # View container information (no decryption required):
@@ -200,7 +269,9 @@ Share sensitive data securely by encrypting with a key file:
 # Step 1: Generate a random encryption key
 .\ecrypto.exe keygen --out transfer_key.txt
 
-# Step 2: Encrypt your sensitive data
+# Step 2: Encrypt your sensitive file or folder
+.\ecrypto.exe encrypt --in "C:\report.pdf" --out "transfer.ecrypt" --key-file transfer_key.txt
+# or for a folder:
 .\ecrypto.exe encrypt --in "C:\SensitiveData" --out "transfer.ecrypt" --key-file transfer_key.txt
 
 # Step 3: Send transfer.ecrypt via one channel (email/cloud)
