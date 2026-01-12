@@ -5,7 +5,7 @@ const path = require("path");
 const https = require("https");
 const fs = require("fs");
 
-const version = "v1.0.6";
+const version = "v1.0.7";
 
 function getBinaryName() {
   const platform = os.platform();

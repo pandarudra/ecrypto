@@ -1,7 +1,7 @@
 {
   "name": "ecrypto-cli",
-  "version": "1.0.5",
-  "description": "Military-grade folder encryption tool (npm global installer)",
+  "version": "1.0.7",
+  "description": "Military-grade folder & file encryption tool with XChaCha20-Poly1305 and Argon2id. Interactive file browser, cross-platform CLI.",
   "bin": {
     "ecrypto": "bin/launcher.js",
     "ecrypto-cli": "bin/launcher.js"
@@ -11,7 +11,8 @@
   },
   "files": [
     "bin/",
-    "postinstall.js"
+    "postinstall.js",
+    "README.md"
   ],
   "os": [
     "darwin",
@@ -23,11 +24,30 @@
     "type": "git",
     "url": "git+https://github.com/pandarudra/ecrypto.git"
   },
+  "bugs": {
+    "url": "https://github.com/pandarudra/ecrypto/issues"
+  },
   "keywords": [
     "encryption",
     "crypto",
     "security",
-    "cli"
+    "cli",
+    "xchacha20",
+    "poly1305",
+    "argon2id",
+    "aead",
+    "folder-encryption",
+    "file-encryption",
+    "military-grade",
+    "privacy",
+    "secure",
+    "cross-platform",
+    "interactive",
+    "file-browser"
   ],
-  "license": "MIT"
+  "author": "pandarudra",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  }
 }
