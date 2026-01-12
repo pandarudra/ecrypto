@@ -114,7 +114,7 @@ func encryptInteractive() error {
 			Foreground(ColorDark).
 			Italic(true).
 			Render("Tip: Copy-paste or type the full path to your folder"))
-		inPath = SelectFolder("Enter folder path")
+		inPath = SelectFolderEnhanced("Select folder to encrypt")
 		isFolder = true
 	} else {
 		// Encrypt file
@@ -122,7 +122,7 @@ func encryptInteractive() error {
 			Foreground(ColorDark).
 			Italic(true).
 			Render("Tip: Copy-paste or type the full path to your file"))
-		inPath = SelectFile("Enter file path")
+		inPath = SelectFileEnhanced("Select file to encrypt")
 		isFolder = false
 	}
 
@@ -253,7 +253,7 @@ func encryptInteractive() error {
 			PrintSuccess(fmt.Sprintf("Key saved to: %s", keyFile))
 		} else {
 			// Use existing key file
-			keyFile = SelectFileOrSkip("Select existing key file")
+			keyFile = SelectFileEnhanced("Select existing key file")
 			if keyFile == "" {
 				PrintError("No key file selected.")
 				Pause()
@@ -394,7 +394,7 @@ func decryptInteractive() error {
 		Render("Step 1: Select .ecrypt File"))
 	fmt.Println(HelpStyle.Render("Tip: Copy-paste the full path to your .ecrypt file"))
 	
-	inFile := SelectFile("Select .ecrypt file to decrypt")
+	inFile := SelectFileEnhanced("Select .ecrypt file to decrypt")
 	if inFile == "" {
 		return nil
 	}
@@ -451,7 +451,7 @@ func decryptInteractive() error {
 	if keyMode == 0 {
 		pass = PromptPassphrase("Enter passphrase")
 	} else {
-		keyFile = SelectFile("Select key file")
+		keyFile = SelectFileEnhanced("Select key file")
 		if keyFile == "" {
 			PrintError("No key file selected.")
 			Pause()
@@ -583,7 +583,7 @@ func infoInteractive() error {
 	PrintInfo("View details about an encrypted container (no decryption needed)")
 
 	fmt.Println()
-	inFile := SelectFile("Select .ecrypt file to inspect")
+	inFile := SelectFileEnhanced("Select .ecrypt file to inspect")
 	if inFile == "" {
 		return nil
 	}
@@ -731,7 +731,7 @@ func undoInteractive() error {
 	if keyMode == 0 {
 		pass = PromptPassphrase("Enter original passphrase")
 	} else {
-		keyFile = SelectFile("Select key file")
+		keyFile = SelectFileEnhanced("Select key file")
 		if keyFile == "" {
 			PrintError("No key file selected.")
 			Pause()
