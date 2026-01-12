@@ -308,7 +308,7 @@ func SelectOptionOrPath(title string, options []string) (int, string, bool) {
 	fmt.Println()
 
 	for {
-		input := PromptUser("Select option (or paste path directly)", "1")
+		input := PromptUser("Select option", "1")
 		
 		// Try to parse as a menu choice first
 		if choice, err := parseChoice(input, len(options)); err == nil {
