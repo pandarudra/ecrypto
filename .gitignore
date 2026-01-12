@@ -32,7 +32,7 @@ vendor/
 
 # NPM packages
 *.tar
-*.tgz
+*.tgz   
 *.tar.gz
 node_modules/
 
