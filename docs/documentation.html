@@ -717,5 +717,47 @@ Input → ZIP Compress → Encrypt → .ecrypt Container</pre
         Built with precision for privacy-conscious users • ECRYPTO 2026
       </footer>
     </div>
+
+    <script>
+  function showToast(msg) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add("show"), 10);
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }
+
+  function attachCopyButtons() {
+    document.querySelectorAll("pre").forEach((pre) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "pre-wrapper";
+      pre.parentNode.insertBefore(wrapper, pre);
+      wrapper.appendChild(pre);
+
+      const btn = document.createElement("button");
+      btn.className = "copy-btn";
+      btn.innerText = "Copy";
+      wrapper.appendChild(btn);
+
+      btn.addEventListener("click", () => {
+        navigator.clipboard.writeText(pre.innerText.trim()).then(() => {
+          btn.innerText = "✓ Copied";
+          showToast("Copied to clipboard!");
+
+          setTimeout(() => (btn.innerText = "Copy"), 1500);
+        });
+      });
+    });
+  }
+
+  attachCopyButtons();
+</script>
+
   </body>
 </html>
