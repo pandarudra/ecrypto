@@ -2,6 +2,7 @@ package ui
 
 import (
 	"bufio"
+	"ecrypto/ai"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -108,6 +109,25 @@ func SelectFileOrSkip(title string) string {
 
 // SelectFolder displays folder browser
 func SelectFolder(title string) string {
+	// Show contextual hint
+	hint := ai.GetContextualHint("encrypt_input")
+	if hint != "" {
+		fmt.Println(lipgloss.NewStyle().Foreground(ColorPrimary).Render(hint))
+	}
+	
+	// Show AI suggestions for recent and common paths
+	suggestions := ai.SuggestRecentPaths("encrypt", 3)
+	if len(suggestions) > 0 {
+		fmt.Println()
+		fmt.Println(lipgloss.NewStyle().Foreground(ColorSecondary).Bold(true).Render("💡 Recent paths:"))
+		for i, sug := range suggestions {
+			if i < 3 {
+				fmt.Println(lipgloss.NewStyle().Foreground(ColorDark).Render(fmt.Sprintf("   %s", sug.Text)))
+			}
+		}
+		fmt.Println()
+	}
+	
 	maxAttempts := 3
 	for i := 0; i < maxAttempts; i++ {
 		path := PromptUser(title, "")
@@ -210,10 +230,50 @@ func PromptPassphrase(label string) string {
 	inlineStyle := lipgloss.NewStyle().
 		Foreground(ColorSecondary).
 		Bold(true)
+	
+	// Show contextual hint
+	hint := ai.GetContextualHint("password_entry")
+	if hint != "" {
+		fmt.Println(lipgloss.NewStyle().Foreground(ColorPrimary).Render(hint))
+		fmt.Println()
+	}
+	
 	fmt.Print(inlineStyle.Render(label + ": "))
 	pass, _ := reader.ReadString('\n')
-	fmt.Println()
-	return strings.TrimSpace(pass)
+	pass = strings.TrimSpace(pass)
+	
+	// Analyze password strength and show suggestions
+	if pass != "" {
+		strength, suggestions, score := ai.AnalyzePasswordStrength(pass)
+		
+		// Color code based on strength
+		var strengthColor lipgloss.Color
+		switch strength {
+		case "Strong":
+			strengthColor = ColorSuccess
+		case "Medium":
+			strengthColor = ColorWarning
+		case "Weak", "Very Weak":
+			strengthColor = ColorError
+		default:
+			strengthColor = ColorDark
+		}
+		
+		// Show strength indicator
+		strengthStyle := lipgloss.NewStyle().Foreground(strengthColor).Bold(true)
+		fmt.Println(strengthStyle.Render(fmt.Sprintf("\n  Strength: %s (%.0f%%)", strength, score*100)))
+		
+		// Show suggestions if any
+		if len(suggestions) > 0 && strength != "Strong" {
+			fmt.Println()
+			for _, suggestion := range suggestions {
+				fmt.Println(lipgloss.NewStyle().Foreground(ColorDark).Render("  " + suggestion))
+			}
+		}
+		fmt.Println()
+	}
+	
+	return pass
 }
 
 // PrintBanner displays colorful banner
@@ -333,4 +393,40 @@ func SelectOptionOrPath(title string, options []string) (int, string, bool) {
 			fmt.Println(ErrorStyle.Render("Invalid choice. Try again."))
 		}
 	}
+}
+
+// SelectOutputPath displays output path selector with AI suggestions
+func SelectOutputPath(inputPath string) string {
+	// Generate smart output suggestions
+	suggestions := ai.SuggestOutputPath(inputPath)
+	
+	fmt.Println()
+	fmt.Println(lipgloss.NewStyle().Foreground(ColorSecondary).Bold(true).Render("💡 Suggested output paths:"))
+	for i, sug := range suggestions {
+		if i < 3 {
+			confidence := fmt.Sprintf("%.0f%%", sug.Confidence*100)
+			fmt.Println(lipgloss.NewStyle().Foreground(ColorDark).Render(
+				fmt.Sprintf("   [%d] %s (%s) - %s", i+1, filepath.Base(sug.Text), confidence, sug.Description)))
+		}
+	}
+	fmt.Println()
+	
+	// Show contextual hint
+	hint := ai.GetContextualHint("encrypt_output")
+	if hint != "" {
+		fmt.Println(lipgloss.NewStyle().Foreground(ColorPrimary).Render(hint))
+		fmt.Println()
+	}
+	
+	// Allow user to pick suggestion or enter custom path
+	input := PromptUser("Select suggestion (1-3) or enter custom path", "1")
+	
+	// Check if it's a number (selecting a suggestion)
+	if choice, err := parseChoice(input, len(suggestions)); err == nil && choice < 3 {
+		return suggestions[choice].Text
+	}
+	
+	// Otherwise treat as custom path
+	path := strings.Trim(input, "\"")
+	return path
 }

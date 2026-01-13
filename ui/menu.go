@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"ecrypto/ai"
 	"ecrypto/cmd"
 	"fmt"
 	"os"
@@ -158,10 +159,8 @@ func encryptInteractive() error {
 		Bold(true).
 		Render("Step 2: Choose Output Location"))
 	
-	defaultOut := filepath.Join(filepath.Dir(inPath), displayName+".ecrypt")
-	fmt.Println(HelpStyle.Render(fmt.Sprintf("Default: %s", defaultOut)))
-	
-	outFile := strings.Trim(PromptUser("Output file path (press Enter to use default)", defaultOut), "\"")
+	// Use AI-powered output path suggestion
+	outFile := SelectOutputPath(inPath)
 	
 	// Make absolute path
 	if !filepath.IsAbs(outFile) {
@@ -330,7 +329,7 @@ func encryptInteractive() error {
 	
 	if encErr != nil {
 		PrintError(fmt.Sprintf("Encryption failed: %v", encErr))
-		// Log failed operation
+		// Log failed operation (existing history system)
 		history := NewOperationHistory()
 		history.AddOperation(Operation{
 			Type:       "encrypt",
@@ -343,11 +342,17 @@ func encryptInteractive() error {
 			Status:     "failed",
 			Error:      encErr.Error(),
 		})
+		// Add AI history tracking
+		method := "passphrase"
+		if keyMode == 1 {
+			method = "keyfile"
+		}
+		ai.AddOperation("encrypt", inPath, outFile, method, false)
 		Pause()
 		return nil
 	}
 
-	// Log successful operation
+	// Log successful operation (existing history system)
 	history := NewOperationHistory()
 	history.AddOperation(Operation{
 		Type:       "encrypt",
@@ -359,6 +364,24 @@ func encryptInteractive() error {
 		KeyPath:    keyFile,
 		Status:     "success",
 	})
+	
+	// Add AI history tracking
+	method := "passphrase"
+	if keyMode == 1 {
+		method = "keyfile"
+	}
+	ai.AddOperation("encrypt", inPath, outFile, method, true)
+	
+	// Show AI suggestion for next action
+	nextActions := ai.SuggestNextAction("after_encrypt")
+	if len(nextActions) > 0 {
+		fmt.Println()
+		fmt.Println(lipgloss.NewStyle().Foreground(ColorPrimary).Bold(true).Render("💡 What's next?"))
+		for _, action := range nextActions {
+			fmt.Println(lipgloss.NewStyle().Foreground(ColorDark).Render(fmt.Sprintf("   • %s", action.Text)))
+		}
+		fmt.Println()
+	}
 
 	successMsg := ""
 	if isFolder {
