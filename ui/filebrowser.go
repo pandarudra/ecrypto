@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -12,10 +13,10 @@ import (
 
 // FileBrowserItem represents a file or folder
 type FileBrowserItem struct {
-	Name    string
-	Path    string
-	IsDir   bool
-	Size    int64
+	Name  string
+	Path  string
+	IsDir bool
+	Size  int64
 }
 
 // BrowseForFolder shows an interactive folder browser
@@ -33,7 +34,7 @@ func browseFileSystem(title string, foldersOnly bool) string {
 		Foreground(ColorDark).
 		Italic(true).
 		Render("↑/↓: Navigate | Enter: Select | P: Paste Path | B: Back | Q: Cancel")
-	
+
 	fmt.Println(lipgloss.NewStyle().
 		Foreground(ColorPrimary).
 		Bold(true).
@@ -42,7 +43,7 @@ func browseFileSystem(title string, foldersOnly bool) string {
 	fmt.Println()
 
 	choice := PromptUser("Choose [1] Browse or [2] Paste Path", "1")
-	
+
 	if choice == "2" {
 		path := PromptUser("Enter path", "")
 		path = strings.Trim(path, "\"")
@@ -78,7 +79,7 @@ func interactiveBrowse(startPath string, foldersOnly bool) string {
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		ClearScreen()
-		
+
 		// Show current path or drives
 		if currentPath == "" {
 			fmt.Println(lipgloss.NewStyle().
@@ -96,7 +97,7 @@ func interactiveBrowse(startPath string, foldersOnly bool) string {
 		// List items in current directory or show drives
 		var items []FileBrowserItem
 		var err error
-		
+
 		if currentPath == "" {
 			items = listDrives()
 		} else {
@@ -121,14 +122,14 @@ func interactiveBrowse(startPath string, foldersOnly bool) string {
 			if item.Name == ".." {
 				icon = "⬆️"
 			}
-			
+
 			itemStyle := MenuItemStyle
 			prefix := fmt.Sprintf("  [%d] %s %s", i+1, icon, item.Name)
-			
+
 			if !item.IsDir && item.Size > 0 {
 				prefix += fmt.Sprintf(" (%s)", FormatBytes(item.Size))
 			}
-			
+
 			fmt.Println(itemStyle.Render(prefix))
 		}
 
@@ -137,7 +138,7 @@ func interactiveBrowse(startPath string, foldersOnly bool) string {
 			Foreground(ColorDark).
 			Italic(true).
 			Render("Enter number to select | [S]elect current folder | [P]aste path | [Q]uit"))
-		
+
 		input := PromptUser("Choice", "")
 		input = strings.ToUpper(strings.TrimSpace(input))
 
@@ -145,7 +146,7 @@ func interactiveBrowse(startPath string, foldersOnly bool) string {
 		if input == "Q" {
 			return ""
 		}
-		
+
 		if input == "S" {
 			if currentPath == "" {
 				fmt.Println(ErrorStyle.Render("✗ Please select a drive first"))
@@ -277,30 +278,49 @@ func listDirectory(path string, foldersOnly bool) ([]FileBrowserItem, error) {
 	return items, nil
 }
 
-// listDrives returns available drives on Windows
+// listDrives returns available drives on Windows or common folders on Unix/Mac
 func listDrives() []FileBrowserItem {
 	var drives []FileBrowserItem
-	
-	// Check drives A-Z
-	for drive := 'A'; drive <= 'Z'; drive++ {
-		drivePath := fmt.Sprintf("%c:\\", drive)
-		if _, err := os.Stat(drivePath); err == nil {
-			driveName := fmt.Sprintf("%c:", drive)
+
+	if runtime.GOOS == "windows" {
+		// Check drives A-Z on Windows
+		for drive := 'A'; drive <= 'Z'; drive++ {
+			drivePath := fmt.Sprintf("%c:\\", drive)
+			if _, err := os.Stat(drivePath); err == nil {
+				driveName := fmt.Sprintf("%c:", drive)
+				drives = append(drives, FileBrowserItem{
+					Name:  driveName,
+					Path:  drivePath,
+					IsDir: true,
+				})
+			}
+		}
+	} else {
+		// On Mac/Linux, start from root and show common folders
+		drives = append(drives, FileBrowserItem{
+			Name:  "/",
+			Path:  "/",
+			IsDir: true,
+		})
+
+		// Add common user folders
+		home, _ := os.UserHomeDir()
+		if home != "" {
 			drives = append(drives, FileBrowserItem{
-				Name:  driveName,
-				Path:  drivePath,
+				Name:  "Home",
+				Path:  home,
 				IsDir: true,
 			})
 		}
 	}
-	
+
 	return drives
 }
 
 // QuickPathSuggestions shows common folder suggestions
 func QuickPathSuggestions() []string {
 	var suggestions []string
-	
+
 	home, _ := os.UserHomeDir()
 	if home != "" {
 		suggestions = append(suggestions,
