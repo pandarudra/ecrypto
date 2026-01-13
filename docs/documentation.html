@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ECRYPTO • Complete Documentation</title>
+    <meta
+      name="description"
+      content="Complete documentation for ECRYPTO - Military-grade folder encryption with XChaCha20-Poly1305 and Argon2id"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="hero-content">
+          <span class="tag">DOCUMENTATION</span>
+          <h1 class="hero-title">ECRYPTO Documentation</h1>
+          <p class="hero-sub">
+            Complete guide to military-grade folder and file encryption. Learn
+            installation, usage, security best practices, and advanced features.
+          </p>
+          <div class="cta-row">
+            <a
+              class="btn primary"
+              href="https://github.com/pandarudra/ecrypto/releases/latest"
+              >Download Latest</a
+            >
+            <a class="btn" href="index.html">How It Works</a>
+            <a class="btn" href="https://github.com/pandarudra/ecrypto"
+              >GitHub</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section>
+        <h2 class="section-title">Key Features</h2>
+        <p class="section-lead">
+          Enterprise security made accessible with an intuitive interface
+        </p>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Military-Grade Security</h3>
+            <p>
+              XChaCha20-Poly1305 AEAD cipher with 256-bit keys and Argon2id key
+              derivation
+            </p>
+          </div>
+          <div class="panel">
+            <h3>Interactive File Browser</h3>
+            <p>Visual drive and folder navigation with smart path detection</p>
+          </div>
+          <div class="panel">
+            <h3>Cross-Platform</h3>
+            <p>Works seamlessly on Windows, macOS, and Linux</p>
+          </div>
+          <div class="panel">
+            <h3>Single Secure Container</h3>
+            <p>Compress and encrypt entire folders into .ecrypt files</p>
+          </div>
+          <div class="panel">
+            <h3>Flexible Authentication</h3>
+            <p>Use passphrases or raw 32-byte key files</p>
+          </div>
+          <div class="panel">
+            <h3>Tamper Detection</h3>
+            <p>Authentication tags prevent unauthorized modifications</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Installation -->
+      <section>
+        <h2 class="section-title">Installation</h2>
+        <p class="section-lead">
+          Multiple installation methods for all platforms
+        </p>
+
+        <div class="panel">
+          <h3>Option 1: Pre-built Binaries (Recommended)</h3>
+
+          <div style="margin-top: 24px">
+            <strong style="color: var(--accent)">Windows</strong>
+            <pre>
+Invoke-WebRequest -Uri "https://github.com/pandarudra/ecrypto/releases/latest/download/ecrypto-windows-amd64.exe" -OutFile "ecrypto.exe"
+
+# Run it
+.\ecrypto.exe</pre
+            >
+          </div>
+
+          <div style="margin-top: 24px">
+            <strong style="color: var(--accent)">macOS</strong>
+            <pre>
+curl -L -o ecrypto "https://github.com/pandarudra/ecrypto/releases/latest/download/ecrypto-darwin-amd64"
+chmod +x ecrypto
+sudo mv ecrypto /usr/local/bin/</pre
+            >
+          </div>
+
+          <div style="margin-top: 24px">
+            <strong style="color: var(--accent)">Linux</strong>
+            <pre>
+wget -O ecrypto "https://github.com/pandarudra/ecrypto/releases/latest/download/ecrypto-linux-amd64"
+chmod +x ecrypto
+sudo mv ecrypto /usr/local/bin/</pre
+            >
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top: 32px">
+          <div class="panel">
+            <h3>Option 2: NPM (Global CLI)</h3>
+            <pre>
+npm install -g ecrypto-cli
+
+# Use anywhere
+ecrypto-cli --help</pre
+            >
+            <ul class="list-compact">
+              <li>Automatic updates</li>
+              <li>Cross-platform support</li>
+              <li>No manual binary management</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3>Option 3: Build from Source</h3>
+            <pre>
+git clone https://github.com/pandarudra/ecrypto.git
+cd ecrypto
+go build -o ecrypto</pre
+            >
+            <ul class="list-compact">
+              <li>Requires Go 1.24+</li>
+              <li>Latest development features</li>
+              <li>Full control over build</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interactive File Browser -->
+      <section>
+        <h2 class="section-title">Interactive File Browser</h2>
+        <p class="section-lead">
+          Navigate your file system visually without typing paths manually
+        </p>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Drive Selection</h3>
+            <pre>
+💾 Select Drive
+
+  [1] 💾 C:
+  [2] 💾 D:
+  [3] 💾 E:</pre
+            >
+            <p>Start by choosing your drive on Windows systems</p>
+          </div>
+
+          <div class="panel">
+            <h3>Folder Navigation</h3>
+            <pre>
+📂 Current: C:\Users\Name
+
+  [1] ⬆️  ..
+  [2] 📁 Documents
+  [3] 📁 Downloads
+  [4] 📁 Pictures (250 MB)
+  [5] 📄 report.pdf (2.5 MB)</pre
+            >
+            <p>Browse folders with numbered selection and size preview</p>
+          </div>
+        </div>
+
+        <div class="badges">
+          <span class="badge">Visual navigation</span>
+          <span class="badge">File size preview</span>
+          <span class="badge">Quick folder access</span>
+          <span class="badge">Path paste support</span>
+        </div>
+      </section>
+
+      <!-- Quick Start -->
+      <section>
+        <h2 class="section-title">Quick Start Guide</h2>
+
+        <div class="panel">
+          <h3>Interactive Mode (Recommended for Beginners)</h3>
+          <pre>.\ecrypto.exe</pre>
+
+          <p style="margin-top: 16px; color: var(--text-muted)">
+            You'll see an intuitive menu:
+          </p>
+
+          <pre>
+██████ ▄█████ █████▄  ██  ██ █████▄ ██████ ▄████▄
+██▄▄   ██     ██▄▄██▄  ▀██▀  ██▄▄█▀   ██   ██  ██
+██▄▄▄▄ ▀█████ ██   ██   ██   ██       ██   ▀████▀
+
+[1] [ENCRYPT]  Encrypt a Folder/File
+[2] [DECRYPT]  Decrypt a Folder/File
+[3] [KEYGEN]   Generate Encryption Key
+[4] [INFO]     View Container Info
+[5] [UNDO]     Undo Recent Operation
+[6] [EXIT]     Quit Application</pre
+          >
+
+          <ul class="list-compact" style="margin-top: 20px">
+            <li>Select operation by number</li>
+            <li>Browse or paste file paths</li>
+            <li>Choose passphrase or key file</li>
+            <li>Done — data encrypted securely</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Command Reference -->
+      <section>
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-lead">Complete CLI command documentation</p>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Encrypt Folder</h3>
+            <pre>
+ecrypto encrypt \
+  --in "C:\MyFolder" \
+  --out "backup.ecrypt" \
+  --pass "password"</pre
+            >
+          </div>
+
+          <div class="panel">
+            <h3>Encrypt File</h3>
+            <pre>
+ecrypto encrypt \
+  --in "C:\document.pdf" \
+  --out "document.ecrypt" \
+  --pass "password"</pre
+            >
+          </div>
+
+          <div class="panel">
+            <h3>Generate Key File</h3>
+            <pre>
+ecrypto keygen \
+  --out encryption.key</pre
+            >
+          </div>
+
+          <div class="panel">
+            <h3>Encrypt with Key File</h3>
+            <pre>
+ecrypto encrypt \
+  --in "C:\MyFolder" \
+  --out "backup.ecrypt" \
+  --key-file encryption.key</pre
+            >
+          </div>
+
+          <div class="panel">
+            <h3>Decrypt Container</h3>
+            <pre>
+ecrypto decrypt \
+  --in "backup.ecrypt" \
+  --out "restored" \
+  --pass "password"</pre
+            >
+          </div>
+
+          <div class="panel">
+            <h3>View Container Info</h3>
+            <pre>
+ecrypto info \
+  --file backup.ecrypt</pre
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- Command Flags -->
+      <section>
+        <h2 class="section-title">Command Flags</h2>
+
+        <div class="panel">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>Flag</th>
+                <th>Description</th>
+                <th>Default</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="7"><code>encrypt</code></td>
+                <td><code>--in</code></td>
+                <td>Input folder or file path</td>
+                <td>Required</td>
+              </tr>
+              <tr>
+                <td><code>--out</code></td>
+                <td>Output .ecrypt file path</td>
+                <td>Required</td>
+              </tr>
+              <tr>
+                <td><code>--pass</code></td>
+                <td>Passphrase (Argon2id)</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td><code>--key-file</code></td>
+                <td>32-byte Base64 key file</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td><code>--argon-m</code></td>
+                <td>Argon2 memory (KiB)</td>
+                <td>262144 (256MB)</td>
+              </tr>
+              <tr>
+                <td><code>--argon-t</code></td>
+                <td>Argon2 iterations</td>
+                <td>3</td>
+              </tr>
+              <tr>
+                <td><code>--argon-p</code></td>
+                <td>Argon2 parallelism</td>
+                <td>1</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table class="table table-gap">
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>Flag</th>
+                <th>Description</th>
+                <th>Default</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="4"><code>decrypt</code></td>
+                <td><code>--in</code></td>
+                <td>Input .ecrypt file</td>
+                <td>Required</td>
+              </tr>
+              <tr>
+                <td><code>--out</code></td>
+                <td>Output folder path</td>
+                <td>Required</td>
+              </tr>
+              <tr>
+                <td><code>--pass</code></td>
+                <td>Passphrase</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td><code>--key-file</code></td>
+                <td>Key file path</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td><code>keygen</code></td>
+                <td><code>--out</code></td>
+                <td>Output key file</td>
+                <td>stdout</td>
+              </tr>
+              <tr>
+                <td><code>info</code></td>
+                <td><code>--file</code></td>
+                <td>.ecrypt file path</td>
+                <td>Required</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Use Cases -->
+      <section>
+        <h2 class="section-title">Common Use Cases</h2>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Personal Backups</h3>
+            <pre>
+ecrypto encrypt \
+  --in "C:\Users\Name\Documents" \
+  --out "documents_backup.ecrypt" \
+  --pass "SecurePassword123!"</pre
+            >
+            <p>Regular backups for cloud storage and disaster recovery</p>
+          </div>
+
+          <div class="panel">
+            <h3>Secure File Transfer</h3>
+            <pre>
+ecrypto keygen --out key.txt
+ecrypto encrypt \
+  --in "sensitive.pdf" \
+  --out "transfer.ecrypt" \
+  --key-file key.txt</pre
+            >
+            <p>Send encrypted file via one channel, key via another</p>
+          </div>
+
+          <div class="panel">
+            <h3>Performance Tuning</h3>
+            <pre>
+# Fast (128MB memory)
+ecrypto encrypt --in folder \
+  --out backup.ecrypt \
+  --pass "password" \
+  --argon-m 131072 --argon-t 2</pre
+            >
+            <p>Adjust parameters for older hardware</p>
+          </div>
+
+          <div class="panel">
+            <h3>High Security</h3>
+            <pre>
+# Strong (512MB memory)
+ecrypto encrypt --in folder \
+  --out critical.ecrypt \
+  --pass "password" \
+  --argon-m 524288 --argon-t 5</pre
+            >
+            <p>Maximum protection for sensitive data</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Security -->
+      <section>
+        <h2 class="section-title">Security Model</h2>
+        <p class="section-lead">
+          Cryptographic implementation and threat protection
+        </p>
+
+        <div class="badges" style="margin-bottom: 32px">
+          <span class="badge">XChaCha20-Poly1305 AEAD</span>
+          <span class="badge">Argon2id KDF</span>
+          <span class="badge">256-bit Keys</span>
+          <span class="badge">RFC 8439 Compliant</span>
+          <span class="badge">RFC 9106 Compliant</span>
+        </div>
+
+        <div class="panel">
+          <h3>Cryptographic Components</h3>
+          <ul class="list-compact">
+            <li>
+              <strong>Cipher:</strong> XChaCha20-Poly1305 (AEAD cipher with
+              256-bit keys)
+            </li>
+            <li>
+              <strong>KDF:</strong> Argon2id (256MB memory, 3 iterations, 1
+              parallelism)
+            </li>
+            <li><strong>Nonce:</strong> 24 bytes (random, never reused)</li>
+            <li><strong>Salt:</strong> 16 bytes (random per container)</li>
+            <li><strong>MAC:</strong> Poly1305 (16-byte authentication tag)</li>
+          </ul>
+        </div>
+
+        <div class="panel" style="margin-top: 24px">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Protection</th>
+                <th>Implementation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Unauthorized Access</td>
+                <td>256-bit XChaCha20-Poly1305 encryption</td>
+              </tr>
+              <tr>
+                <td>Metadata Leakage</td>
+                <td>File names encrypted within container</td>
+              </tr>
+              <tr>
+                <td>Data Tampering</td>
+                <td>Poly1305 authentication tag verification</td>
+              </tr>
+              <tr>
+                <td>Brute Force</td>
+                <td>Argon2id memory-hard key derivation</td>
+              </tr>
+              <tr>
+                <td>Rainbow Tables</td>
+                <td>Unique salt per container</td>
+              </tr>
+              <tr>
+                <td>Nonce Reuse</td>
+                <td>Random 24-byte nonce per encryption</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Security Best Practices -->
+      <section>
+        <h2 class="section-title">Security Best Practices</h2>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Strong Passphrases</h3>
+            <ul class="list-compact">
+              <li>Minimum 16 characters</li>
+              <li>Mix uppercase, lowercase, numbers, symbols</li>
+              <li>Use password manager (1Password, Bitwarden)</li>
+              <li>Never reuse across containers</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3>Key File Management</h3>
+            <ul class="list-compact">
+              <li>Store in password manager</li>
+              <li>Keep on encrypted USB drive</li>
+              <li>Never store with encrypted files</li>
+              <li>Backup securely</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3>Backup Strategy</h3>
+            <ul class="list-compact">
+              <li>Test decryption before deleting originals</li>
+              <li>Store containers in cloud (safe when encrypted)</li>
+              <li>Keep keys separate from containers</li>
+              <li>Regular backup rotation</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3>Secure Deletion</h3>
+            <pre>
+# Windows
+sdelete -p 3 "C:\Original"
+
+# Linux/macOS
+shred -vfz -n 3 /path/file</pre
+            >
+            <p>Use secure deletion tools for originals</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Troubleshooting -->
+      <section>
+        <h2 class="section-title">Troubleshooting</h2>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Access Denied Error</h3>
+            <p><strong>Cause:</strong> Output path is directory, not file</p>
+            <p>
+              <strong>Fix:</strong> Specify file ending with
+              <code>.ecrypt</code>
+            </p>
+          </div>
+
+          <div class="panel">
+            <h3>Authentication Failed</h3>
+            <p><strong>Cause:</strong> Wrong passphrase or corrupted file</p>
+            <p><strong>Fix:</strong> Verify passphrase, check file integrity</p>
+          </div>
+
+          <div class="panel">
+            <h3>Out of Memory</h3>
+            <p><strong>Cause:</strong> Argon2 memory too high</p>
+            <p><strong>Fix:</strong> Reduce <code>--argon-m</code> parameter</p>
+          </div>
+
+          <div class="panel">
+            <h3>Slow Performance</h3>
+            <p><strong>Cause:</strong> Large folders or high Argon2 settings</p>
+            <p><strong>Fix:</strong> Use key files or reduce parameters</p>
+          </div>
+
+          <div class="panel">
+            <h3>Path Not Found</h3>
+            <p><strong>Cause:</strong> Paths with spaces not quoted</p>
+            <p><strong>Fix:</strong> Use quotes: <code>"C:\My Folder"</code></p>
+          </div>
+
+          <div class="panel">
+            <h3>Invalid Command</h3>
+            <p><strong>Cause:</strong> Wrong syntax</p>
+            <p>
+              <strong>Fix:</strong> Use <code>--help</code> for correct syntax
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Architecture -->
+      <section>
+        <h2 class="section-title">Container Architecture</h2>
+        <p class="section-lead">Internal structure of .ecrypt containers</p>
+
+        <div class="panel">
+          <pre>
+.ecrypt Container Format (v1)
+┌─────────────────────────────────────────
+│ HEADER (59 bytes, authenticated)
+├─────────────────────────────────────────
+│ Magic Bytes      "ECRYPT01"
+│ Version          1
+│ KDF Type         0=raw key | 1=argon2id
+│ Argon2 Params    memory, iterations, parallelism
+│ Salt             16 bytes (random)
+│ Nonce            24 bytes (random)
+├─────────────────────────────────────────
+│ ENCRYPTED PAYLOAD (XChaCha20-Poly1305)
+├─────────────────────────────────────────
+│ ├─ Compressed ZIP Archive
+│ │  ├─ File hierarchy
+│ │  ├─ File contents
+│ │  └─ Metadata
+│ └─ Authentication Tag (16 bytes)
+└─────────────────────────────────────────
+
+File Flow:
+Input → ZIP Compress → Encrypt → .ecrypt Container</pre
+          >
+        </div>
+      </section>
+
+      <!-- Resources -->
+      <section>
+        <h2 class="section-title">Additional Resources</h2>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Project Links</h3>
+            <ul class="list-compact">
+              <li>
+                <a href="https://github.com/pandarudra/ecrypto/releases/latest"
+                  >Download Latest Release</a
+                >
+              </li>
+              <li>
+                <a href="https://github.com/pandarudra/ecrypto/issues"
+                  >Report Issues</a
+                >
+              </li>
+              <li>
+                <a href="https://github.com/pandarudra/ecrypto/discussions"
+                  >Community Discussions</a
+                >
+              </li>
+              <li><a href="index.html">Technical Documentation</a></li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3>Standards & Specifications</h3>
+            <ul class="list-compact">
+              <li>
+                <a href="https://tools.ietf.org/html/rfc8439"
+                  >RFC 8439: XChaCha20-Poly1305</a
+                >
+              </li>
+              <li>
+                <a href="https://datatracker.ietf.org/doc/html/rfc9106"
+                  >RFC 9106: Argon2</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+                  >OWASP Crypto Storage</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3>Contributing</h3>
+            <ul class="list-compact">
+              <li>Report bugs and issues</li>
+              <li>Suggest new features</li>
+              <li>Submit pull requests</li>
+              <li>Improve documentation</li>
+              <li>Security audits welcome</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3>Support</h3>
+            <ul class="list-compact">
+              <li>Star the repository</li>
+              <li>Share with colleagues</li>
+              <li>Write reviews and articles</li>
+              <li>Sponsor development</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        Built with precision for privacy-conscious users • ECRYPTO 2026
+      </footer>
+    </div>
+  </body>
+</html>

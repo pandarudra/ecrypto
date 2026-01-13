@@ -3,12 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ECRYPTO • How It Works</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600&display=swap"
-      rel="stylesheet"
+    <title>ECRYPTO • Military-Grade Encryption</title>
+    <meta
+      name="description"
+      content="Secure folder encryption with XChaCha20-Poly1305 and Argon2id. Military-grade security for your sensitive data."
     />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -17,181 +15,217 @@
       <section class="hero">
         <div class="hero-content">
           <span class="tag">HOW IT WORKS</span>
-          <h1 class="hero-title">
-            ECRYPTO — Secure Folder Encryption, Explained Simply
-          </h1>
+          <h1 class="hero-title">Military-Grade Encryption, Simplified</h1>
           <p class="hero-sub">
-            ECRYPTO turns any folder into a tamper-evident, fully encrypted
-            container. This page explains the pipeline, security model, and
-            knobs you can tune.
+            ECRYPTO transforms folders and files into tamper-proof encrypted
+            containers using XChaCha20-Poly1305 and Argon2id. Enterprise
+            security made accessible.
           </p>
           <div class="cta-row">
             <a
               class="btn primary"
               href="https://github.com/pandarudra/ecrypto/releases/latest"
-              >⬇ Download Latest</a
+              >Download Latest</a
             >
             <a class="btn" href="https://github.com/pandarudra/ecrypto"
               >View on GitHub</a
             >
-            <a class="btn" href="../README.md">Back to README</a>
+            <a class="btn" href="./documentation.html">Documentation</a>
           </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="section-title">Flow at a Glance</h2>
-        <p class="section-lead">
-          Argon2id is used only when you provide a passphrase. Key files skip
-          derivation for speed and maximal entropy.
-        </p>
-
-        <div class="flow">
-          <div class="panel step">
-            <strong>1) Input</strong>Folder scanned; paths and metadata
-            captured.
-          </div>
-          <div class="panel step">
-            <strong>2) Compress</strong>Zipped into one compressed stream.
-          </div>
-          <div class="panel step">
-            <strong>3) Key</strong>Passphrase → Argon2id or raw key file.
-          </div>
-          <div class="panel step">
-            <strong>4) Encrypt</strong>XChaCha20-Poly1305 encrypts +
-            authenticates.
-          </div>
-          <div class="panel step">
-            <strong>5) Output</strong>Emits a single
-            <code>.ecrypt</code> container with MAC.
-          </div>
-        </div>
-
-        <div class="badges">
-          <span class="badge">Cipher: XChaCha20-Poly1305</span>
-          <span class="badge">KDF: Argon2id (256MB, t=3)</span>
-          <span class="badge">Integrity: Poly1305 tag</span>
-          <span class="badge">Nonce: 24 bytes</span>
         </div>
       </section>
 
       <section>
         <h2 class="section-title">Encryption Pipeline</h2>
-        <p class="section-lead">When you run <code>ecrypto encrypt</code>:</p>
+        <p class="section-lead">
+          A five-stage process transforms your data into an encrypted container.
+          Argon2id strengthens passphrases, while key files provide maximum
+          entropy.
+        </p>
+
+        <div class="flow">
+          <div class="panel step">
+            <strong>1. SCAN</strong>
+            Folder structure and metadata captured
+          </div>
+          <div class="panel step">
+            <strong>2. COMPRESS</strong>
+            Data packed into optimized ZIP stream
+          </div>
+          <div class="panel step">
+            <strong>3. DERIVE</strong>
+            Argon2id generates 256-bit key from passphrase
+          </div>
+          <div class="panel step">
+            <strong>4. ENCRYPT</strong>
+            XChaCha20-Poly1305 seals and authenticates
+          </div>
+          <div class="panel step">
+            <strong>5. OUTPUT</strong>
+            Single .ecrypt container with integrity tag
+          </div>
+        </div>
+
+        <div class="badges">
+          <span class="badge">XChaCha20-Poly1305 AEAD</span>
+          <span class="badge">Argon2id (256MB, t=3)</span>
+          <span class="badge">256-bit Keys</span>
+          <span class="badge">24-byte Nonce</span>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Technical Deep Dive</h2>
+        <p class="section-lead">
+          Understanding the cryptographic operations at each stage
+        </p>
 
         <div class="grid">
           <div class="panel">
-            <h3>1) Keying</h3>
+            <h3>Key Derivation</h3>
             <p>
-              Passphrase → Argon2id (m=256MB, t=3, p=1) → 256-bit key. Key files
-              bypass derivation.
+              Argon2id (memory=256MB, iterations=3, parallelism=1) transforms
+              passphrases into 256-bit keys. Key files bypass this step for
+              maximum performance.
             </p>
             <ul class="list-compact">
-              <li>Salt: 16 bytes</li>
-              <li>Nonce: 24 bytes</li>
+              <li>16-byte random salt</li>
+              <li>24-byte unique nonce</li>
+              <li>Memory-hard protection</li>
             </ul>
           </div>
           <div class="panel">
-            <h3>2) Pack</h3>
+            <h3>Compression</h3>
             <p>
-              Folder packed as ZIP. Filenames & structure remain private inside
-              ciphertext.
+              Folder hierarchy compressed as ZIP archive. File names and
+              metadata encrypted within ciphertext for privacy.
             </p>
+            <ul class="list-compact">
+              <li>Preserves structure</li>
+              <li>Reduces storage</li>
+              <li>Hidden metadata</li>
+            </ul>
           </div>
           <div class="panel">
-            <h3>3) Seal</h3>
+            <h3>Encryption</h3>
             <p>
-              XChaCha20-Poly1305 encrypts + authenticates (header + ciphertext).
+              XChaCha20-Poly1305 AEAD cipher provides authenticated encryption.
+              Headers and payload both protected by authentication tag.
             </p>
+            <ul class="list-compact">
+              <li>Extended nonce space</li>
+              <li>Constant-time operations</li>
+              <li>Tamper detection</li>
+            </ul>
           </div>
           <div class="panel">
-            <h3>4) Emit</h3>
+            <h3>Output Format</h3>
             <p>
-              Header + encrypted ZIP + MAC become a single
-              <code>.ecrypt</code> file.
+              Single .ecrypt container includes header metadata, encrypted
+              payload, and Poly1305 authentication tag.
             </p>
+            <ul class="list-compact">
+              <li>Version-tagged format</li>
+              <li>Forward compatible</li>
+              <li>Integrity verified</li>
+            </ul>
           </div>
         </div>
       </section>
 
       <section>
-        <h2 class="section-title">Decryption Pipeline</h2>
-        <p class="section-lead">When you run <code>ecrypto decrypt</code>:</p>
+        <h2 class="section-title">Decryption Process</h2>
+        <p class="section-lead">Reversing the pipeline to restore your data</p>
 
         <div class="grid">
           <div class="panel">
-            <h3>1) Parse Header</h3>
-            <p>Read magic/version, KDF params, salt, and nonce.</p>
+            <h3>Header Parsing</h3>
+            <p>
+              Extract version, KDF parameters, salt, and nonce from container
+              header.
+            </p>
           </div>
           <div class="panel">
-            <h3>2) Rebuild Key</h3>
-            <p>Passphrase → Argon2id or load raw key file.</p>
+            <h3>Key Reconstruction</h3>
+            <p>
+              Regenerate 256-bit key using stored salt or load key file
+              directly.
+            </p>
           </div>
           <div class="panel">
-            <h3>3) Verify + Decrypt</h3>
-            <p>Poly1305 tag verifies integrity; ZIP stream recovered.</p>
+            <h3>Authentication</h3>
+            <p>
+              Verify Poly1305 tag ensures data integrity before decryption
+              begins.
+            </p>
           </div>
           <div class="panel">
-            <h3>4) Restore</h3>
-            <p>Folder tree + contents reconstructed.</p>
+            <h3>Data Restoration</h3>
+            <p>
+              Decrypt payload, decompress ZIP, and reconstruct folder hierarchy.
+            </p>
           </div>
         </div>
       </section>
 
       <section>
         <h2 class="section-title">Security Model</h2>
-        <p class="section-lead">What ECRYPTO protects and what it doesn't.</p>
+        <p class="section-lead">
+          Understanding what ECRYPTO protects and operational security
+          considerations
+        </p>
 
         <div class="panel">
           <table class="table">
             <thead>
               <tr>
-                <th>Protects</th>
-                <th>Notes</th>
+                <th>Protected Against</th>
+                <th>Implementation</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Unauthorized access</td>
-                <td>256-bit XChaCha20-Poly1305</td>
+                <td>Unauthorized Access</td>
+                <td>256-bit XChaCha20-Poly1305 encryption</td>
               </tr>
               <tr>
-                <td>Metadata leakage</td>
-                <td>Names inside encrypted ZIP</td>
+                <td>Data Tampering</td>
+                <td>Poly1305 authentication tag verification</td>
               </tr>
               <tr>
-                <td>Tampering</td>
-                <td>Poly1305 MAC</td>
+                <td>Metadata Exposure</td>
+                <td>File names encrypted within container</td>
               </tr>
               <tr>
-                <td>Brute force</td>
-                <td>Argon2id slows guessing</td>
+                <td>Brute Force Attacks</td>
+                <td>Argon2id memory-hard key derivation</td>
               </tr>
             </tbody>
           </table>
+
           <table class="table table-gap">
             <thead>
               <tr>
-                <th>Not protected</th>
-                <th>Mitigation</th>
+                <th>User Responsibility</th>
+                <th>Best Practice</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Weak passphrases</td>
-                <td>Use 16+ chars or key files</td>
+                <td>Weak Passphrases</td>
+                <td>Use 16+ character passphrases or key files</td>
               </tr>
               <tr>
-                <td>Keyloggers</td>
-                <td>Keep OS clean</td>
+                <td>Key Management</td>
+                <td>Store keys in password managers or secure vaults</td>
               </tr>
               <tr>
-                <td>Physical RAM capture</td>
-                <td>Full-disk encryption</td>
+                <td>System Security</td>
+                <td>Maintain clean OS, use full-disk encryption</td>
               </tr>
               <tr>
-                <td>Key loss</td>
-                <td>No recovery; back up keys</td>
+                <td>Key Loss</td>
+                <td>No recovery possible — backup keys securely</td>
               </tr>
             </tbody>
           </table>
@@ -199,93 +233,134 @@
       </section>
 
       <section>
-        <h2 class="section-title">Performance Tuning</h2>
+        <h2 class="section-title">Performance Optimization</h2>
         <p class="section-lead">
-          Argon2id settings influence speed and brute-force cost.
+          Tune Argon2id parameters to balance security and performance for your
+          hardware
         </p>
 
         <div class="grid">
           <div class="panel">
-            <h3>Faster</h3>
+            <h3>Fast</h3>
             <pre>
-ecrypto encrypt --in folder --out backup.ecrypt --pass "pass" --argon-m 131072 --argon-t 2</pre
+ecrypto encrypt --in folder \
+  --out backup.ecrypt \
+  --pass "password" \
+  --argon-m 131072 --argon-t 2</pre
             >
-            <p class="list-compact">128MB, t=2</p>
+            <p>128MB memory, 2 iterations — suitable for older hardware</p>
           </div>
           <div class="panel">
-            <h3>Balanced (default)</h3>
+            <h3>Balanced (Default)</h3>
             <pre>
-ecrypto encrypt --in folder --out backup.ecrypt --pass "pass" --argon-m 262144 --argon-t 3</pre
+ecrypto encrypt --in folder \
+  --out backup.ecrypt \
+  --pass "password" \
+  --argon-m 262144 --argon-t 3</pre
             >
-            <p class="list-compact">256MB, t=3</p>
+            <p>256MB memory, 3 iterations — recommended for most users</p>
           </div>
           <div class="panel">
-            <h3>Stronger</h3>
+            <h3>High Security</h3>
             <pre>
-ecrypto encrypt --in folder --out backup.ecrypt --pass "pass" --argon-m 524288 --argon-t 5</pre
+ecrypto encrypt --in folder \
+  --out backup.ecrypt \
+  --pass "password" \
+  --argon-m 524288 --argon-t 5</pre
             >
-            <p class="list-compact">512MB, t=5</p>
+            <p>512MB memory, 5 iterations — maximum passphrase protection</p>
           </div>
           <div class="panel">
-            <h3>Fastest (key files)</h3>
+            <h3>Maximum Performance</h3>
             <pre>
-ecrypto encrypt --in folder --out backup.ecrypt --key-file mykey.txt</pre
+ecrypto encrypt --in folder \
+  --out backup.ecrypt \
+  --key-file key.txt</pre
             >
-            <p class="list-compact">Skips KDF</p>
+            <p>Key files skip KDF entirely — instant encryption/decryption</p>
           </div>
         </div>
       </section>
 
       <section>
-        <h2 class="section-title">File Format Snapshot</h2>
+        <h2 class="section-title">Container Format</h2>
         <p class="section-lead">
-          Headers are authenticated. Nothing meaningful in plaintext.
+          Internal structure of .ecrypt files — authenticated headers with
+          encrypted payload
         </p>
 
         <div class="panel">
           <pre>
-.ecrypt (v1)
-┌ Header ────────────────────────────────
-│ magic: "ECRYPT01"
-│ version: 1
-│ kdf: 0=raw, 1=argon2id
-│ argon2: m, t, p
-│ salt: 16 bytes
-│ nonce: 24 bytes
-└ Encrypted payload (XChaCha20-Poly1305)
-  compressed ZIP + auth tag
-</pre
+.ecrypt Container (v1)
+┌─────────────────────────────────────────
+│ HEADER (Authenticated)
+├─────────────────────────────────────────
+│ Magic Bytes      ECRYPT01
+│ Version          1
+│ KDF Type         0=raw key | 1=argon2id
+│ Argon2 Params    memory, iterations, parallelism
+│ Salt             16 bytes (random)
+│ Nonce            24 bytes (random)
+├─────────────────────────────────────────
+│ ENCRYPTED PAYLOAD
+├─────────────────────────────────────────
+│ Compressed ZIP archive (encrypted)
+│ ├─ File hierarchy
+│ ├─ File contents
+│ └─ Metadata
+├─────────────────────────────────────────
+│ AUTHENTICATION TAG
+├─────────────────────────────────────────
+│ Poly1305 MAC     16 bytes
+└─────────────────────────────────────────</pre
           >
         </div>
       </section>
 
       <section>
-        <h2 class="section-title">Quick Commands</h2>
-        <p class="section-lead">Minimal usage examples.</p>
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-lead">
+          Essential commands for encryption, decryption, and key management
+        </p>
 
         <div class="grid">
           <div class="panel">
-            <h3>Encrypt (passphrase)</h3>
+            <h3>Encrypt with Passphrase</h3>
             <pre>
-ecrypto encrypt --in folder --out backup.ecrypt --pass "StrongPass123!"</pre
+ecrypto encrypt \
+  --in folder \
+  --out backup.ecrypt \
+  --pass "SecurePass123!"</pre
             >
           </div>
           <div class="panel">
-            <h3>Encrypt (key file)</h3>
+            <h3>Generate Key File</h3>
             <pre>
-ecrypto keygen --out mykey.txt
-ecrypto encrypt --in folder --out backup.ecrypt --key-file mykey.txt</pre
+ecrypto keygen \
+  --out encryption.key
+
+ecrypto encrypt \
+  --in folder \
+  --out backup.ecrypt \
+  --key-file encryption.key</pre
             >
           </div>
           <div class="panel">
-            <h3>Decrypt</h3>
+            <h3>Decrypt Container</h3>
             <pre>
-ecrypto decrypt --in backup.ecrypt --out restored --pass "StrongPass123!"</pre
+ecrypto decrypt \
+  --in backup.ecrypt \
+  --out restored \
+  --pass "SecurePass123!"</pre
             >
           </div>
           <div class="panel">
-            <h3>Inspect</h3>
-            <pre>ecrypto info --file backup.ecrypt</pre>
+            <h3>Inspect Metadata</h3>
+            <pre>
+ecrypto info \
+  --file backup.ecrypt</pre
+            >
+            <p>View container version, KDF settings, and timestamps</p>
           </div>
         </div>
       </section>
@@ -294,25 +369,27 @@ ecrypto decrypt --in backup.ecrypt --out restored --pass "StrongPass123!"</pre
         <h2 class="section-title">Troubleshooting</h2>
         <div class="grid">
           <div class="panel">
-            <h3>Auth tag mismatch</h3>
-            <p>Wrong key or corrupted file.</p>
+            <h3>Authentication Failed</h3>
+            <p>Incorrect passphrase/key or corrupted container file</p>
           </div>
           <div class="panel">
-            <h3>Access denied</h3>
-            <p>Output path must be a file.</p>
+            <h3>Access Denied</h3>
+            <p>Output must be a file path, not a directory</p>
           </div>
           <div class="panel">
-            <h3>Out of memory</h3>
-            <p>Lower <code>--argon-m</code>.</p>
+            <h3>Out of Memory</h3>
+            <p>Reduce <code>--argon-m</code> parameter value</p>
           </div>
           <div class="panel">
-            <h3>Slow performance</h3>
-            <p>Use SSD or key files.</p>
+            <h3>Slow Performance</h3>
+            <p>Use SSD storage or switch to key files</p>
           </div>
         </div>
       </section>
 
-      <footer class="footer">Made with care for privacy • ECRYPTO</footer>
+      <footer class="footer">
+        Built with precision for privacy-conscious users • ECRYPTO 2026
+      </footer>
     </div>
   </body>
 </html>
