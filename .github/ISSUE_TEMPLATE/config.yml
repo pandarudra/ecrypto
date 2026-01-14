@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or Discussion
+    url: https://github.com/pandarudra/ecrypto/discussions
+    about: Ask questions or discuss ideas with the community
+  - name: Security Vulnerability
+    url: https://github.com/pandarudra/ecrypto/security/advisories/new
+    about: Report security vulnerabilities privately (do not use public issues)
+  - name: Documentation
+    url: https://github.com/pandarudra/ecrypto/tree/main/docs
+    about: View the documentation before opening an issue
