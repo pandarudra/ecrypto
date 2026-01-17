@@ -570,11 +570,11 @@ async function loadHistory() {
 
     const historyOperation = document.createElement("div");
     historyOperation.className = "history-operation";
-    historyOperation.textContent = item.operation || "Unknown Operation";
+    historyOperation.textContent = item.type || "Unknown Operation";
 
     const historyPath = document.createElement("div");
     historyPath.className = "history-path";
-    historyPath.textContent = `${item.source || "N/A"} → ${item.output || "N/A"}`;
+    historyPath.textContent = `${item.input_path || "N/A"} → ${item.output_path || "N/A"}`;
 
     const historyTime = document.createElement("div");
     historyTime.className = "history-time";
@@ -587,7 +587,7 @@ async function loadHistory() {
     const historyActions = document.createElement("div");
     historyActions.className = "history-actions";
 
-    if (item.operation === "encrypt") {
+    if (item.type === "encrypt") {
       const undoBtn = document.createElement("button");
       undoBtn.className = "btn btn-small btn-secondary";
       undoBtn.onclick = () => undoOperation(item.id);
