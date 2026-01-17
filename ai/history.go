@@ -9,6 +9,7 @@ import (
 
 // Operation represents a single encryption/decryption operation
 type Operation struct {
+	ID         string    `json:"id"`          // Unique identifier
 	Type       string    `json:"type"`        // "encrypt" or "decrypt"
 	InputPath  string    `json:"input_path"`  // Source file/folder path
 	OutputPath string    `json:"output_path"` // Destination path
@@ -99,12 +100,14 @@ func AddOperation(opType, inputPath, outputPath, method string, success bool) er
 	}
 
 	// Add new operation
+	timestamp := time.Now()
 	op := Operation{
+		ID:         generateOperationID(timestamp),
 		Type:       opType,
 		InputPath:  inputPath,
 		OutputPath: outputPath,
 		Method:     method,
-		Timestamp:  time.Now(),
+		Timestamp:  timestamp,
 		Success:    success,
 	}
 
@@ -173,6 +176,53 @@ func GetRecentPaths(opType string, n int) []string {
 	}
 
 	return paths
+}
+
+// generateOperationID creates a unique ID based on timestamp
+func generateOperationID(t time.Time) string {
+	return t.Format("20060102-150405.000000")
+}
+
+// FindOperationByID finds an operation by its ID
+func FindOperationByID(id string) (*Operation, error) {
+	history, err := LoadHistory()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, op := range history.Operations {
+		if op.ID == id {
+			return &op, nil
+		}
+	}
+
+	return nil, os.ErrNotExist
+}
+
+// RemoveOperation removes an operation by ID
+func RemoveOperation(id string) error {
+	history, err := LoadHistory()
+	if err != nil {
+		return err
+	}
+
+	// Find and remove the operation
+	newOps := []Operation{}
+	found := false
+	for _, op := range history.Operations {
+		if op.ID != id {
+			newOps = append(newOps, op)
+		} else {
+			found = true
+		}
+	}
+
+	if !found {
+		return os.ErrNotExist
+	}
+
+	history.Operations = newOps
+	return SaveHistory(history)
 }
 
 // ClearHistory removes all history

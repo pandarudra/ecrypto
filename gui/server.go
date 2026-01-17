@@ -190,9 +190,13 @@ func (s *Server) handleEncrypt(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if encryptErr != nil {
+		ai.AddOperation("encrypt", req.InputPath, req.OutputPath, getMethodName(req.UseKey), false)
 		sendError(w, fmt.Sprintf("Encryption failed: %v", encryptErr), http.StatusInternalServerError)
 		return
 	}
+
+	// Save to history
+	ai.AddOperation("encrypt", req.InputPath, req.OutputPath, getMethodName(req.UseKey), true)
 
 	sendSuccess(w, "Encryption completed successfully", map[string]interface{}{
 		"outputPath": req.OutputPath,
@@ -236,9 +240,13 @@ func (s *Server) handleDecrypt(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if decryptErr != nil {
+		ai.AddOperation("decrypt", req.InputPath, req.OutputPath, getMethodName(req.UseKey), false)
 		sendError(w, fmt.Sprintf("Decryption failed: %v", decryptErr), http.StatusInternalServerError)
 		return
 	}
+
+	// Save to history
+	ai.AddOperation("decrypt", req.InputPath, req.OutputPath, getMethodName(req.UseKey), true)
 
 	sendSuccess(w, "Decryption completed successfully", map[string]interface{}{
 		"outputPath": req.OutputPath,
@@ -356,8 +364,40 @@ func (s *Server) handleUndo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Implementation would use ai.History to undo
-	sendSuccess(w, "Undo functionality not yet implemented", nil)
+	// Find the operation
+	op, err := ai.FindOperationByID(req.OperationID)
+	if err != nil {
+		sendError(w, "Operation not found", http.StatusNotFound)
+		return
+	}
+
+	// Verify it's an encryption operation
+	if op.Type != "encrypt" {
+		sendError(w, "Only encryption operations can be undone", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the encrypted file still exists
+	if _, err := os.Stat(op.OutputPath); os.IsNotExist(err) {
+		sendError(w, "Encrypted file no longer exists", http.StatusNotFound)
+		return
+	}
+
+	// Delete the encrypted file
+	if err := os.Remove(op.OutputPath); err != nil {
+		sendError(w, fmt.Sprintf("Failed to delete encrypted file: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Remove the operation from history
+	if err := ai.RemoveOperation(req.OperationID); err != nil {
+		// File was deleted but history update failed - still consider it success
+		log.Printf("Warning: Failed to remove operation from history: %v", err)
+	}
+
+	sendSuccess(w, "Operation undone successfully - encrypted file deleted", map[string]interface{}{
+		"deletedFile": op.OutputPath,
+	})
 }
 
 func (s *Server) handleSuggestPath(w http.ResponseWriter, r *http.Request) {
@@ -467,6 +507,13 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		"status":  "ok",
 		"version": "1.0",
 	})
+}
+
+func getMethodName(useKey bool) string {
+	if useKey {
+		return "keyfile"
+	}
+	return "passphrase"
 }
 
 func sendSuccess(w http.ResponseWriter, message string, data interface{}) {

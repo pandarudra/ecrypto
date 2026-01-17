@@ -102,7 +102,9 @@ document
 document
   .getElementById("encrypt-select-file")
   .addEventListener("click", async () => {
-    const path = await window.electronAPI.selectFile();
+    const path = await window.electronAPI.selectFile([
+      { name: "All Files", extensions: ["*"] },
+    ]);
     if (path) {
       state.encryptInputPath = path;
       updateFileDisplay("encrypt-input-display", path);
@@ -140,17 +142,30 @@ document
   .addEventListener("click", (e) => {
     const input = document.getElementById("encrypt-password");
     const button = e.currentTarget;
-    const icon = button.querySelector("i");
+
+    // Remove old icon
+    const oldIcon = button.querySelector("i");
+    if (oldIcon) {
+      oldIcon.remove();
+    }
+    const oldSvg = button.querySelector("svg");
+    if (oldSvg) {
+      oldSvg.remove();
+    }
 
     if (input.type === "password") {
       input.type = "text";
-      icon.setAttribute("data-lucide", "eye-off");
+      const newIcon = document.createElement("i");
+      newIcon.setAttribute("data-lucide", "eye-off");
+      button.appendChild(newIcon);
     } else {
       input.type = "password";
-      icon.setAttribute("data-lucide", "eye");
+      const newIcon = document.createElement("i");
+      newIcon.setAttribute("data-lucide", "eye");
+      button.appendChild(newIcon);
     }
 
-    // Re-initialize the icon
+    // Re-initialize icons
     lucide.createIcons();
   });
 
@@ -182,8 +197,8 @@ document
   .getElementById("encrypt-select-key")
   .addEventListener("click", async () => {
     const path = await window.electronAPI.selectFile([
-      { name: "Key Files", extensions: ["key", "txt"] },
       { name: "All Files", extensions: ["*"] },
+      { name: "Key Files", extensions: ["key", "txt"] },
     ]);
     if (path) {
       state.encryptKeyFile = path;
@@ -239,6 +254,8 @@ document
     if (result.success) {
       showToast("success", "Encryption completed successfully!");
       clearEncryptForm();
+      // Wait a bit for backend to save history, then refresh
+      setTimeout(() => loadHistory(), 500);
     } else {
       showToast("error", `Encryption failed: ${result.error}`);
     }
@@ -281,8 +298,8 @@ document
   .getElementById("decrypt-select-file")
   .addEventListener("click", async () => {
     const path = await window.electronAPI.selectFile([
-      { name: "Ecrypt Files", extensions: ["ecrypt"] },
       { name: "All Files", extensions: ["*"] },
+      { name: "Ecrypt Files", extensions: ["ecrypt"] },
     ]);
     if (path) {
       state.decryptInputPath = path;
@@ -315,17 +332,30 @@ document
   .addEventListener("click", (e) => {
     const input = document.getElementById("decrypt-password");
     const button = e.currentTarget;
-    const icon = button.querySelector("i");
+
+    // Remove old icon
+    const oldIcon = button.querySelector("i");
+    if (oldIcon) {
+      oldIcon.remove();
+    }
+    const oldSvg = button.querySelector("svg");
+    if (oldSvg) {
+      oldSvg.remove();
+    }
 
     if (input.type === "password") {
       input.type = "text";
-      icon.setAttribute("data-lucide", "eye-off");
+      const newIcon = document.createElement("i");
+      newIcon.setAttribute("data-lucide", "eye-off");
+      button.appendChild(newIcon);
     } else {
       input.type = "password";
-      icon.setAttribute("data-lucide", "eye");
+      const newIcon = document.createElement("i");
+      newIcon.setAttribute("data-lucide", "eye");
+      button.appendChild(newIcon);
     }
 
-    // Re-initialize the icon
+    // Re-initialize icons
     lucide.createIcons();
   });
 
@@ -333,8 +363,8 @@ document
   .getElementById("decrypt-select-key")
   .addEventListener("click", async () => {
     const path = await window.electronAPI.selectFile([
-      { name: "Key Files", extensions: ["key", "txt"] },
       { name: "All Files", extensions: ["*"] },
+      { name: "Key Files", extensions: ["key", "txt"] },
     ]);
     if (path) {
       state.decryptKeyFile = path;
@@ -387,6 +417,8 @@ document
     if (result.success) {
       showToast("success", "Decryption completed successfully!");
       clearDecryptForm();
+      // Wait a bit for backend to save history, then refresh
+      setTimeout(() => loadHistory(), 500);
     } else {
       showToast("error", `Decryption failed: ${result.error}`);
     }
@@ -487,8 +519,8 @@ document
   .getElementById("info-select-file")
   .addEventListener("click", async () => {
     const path = await window.electronAPI.selectFile([
-      { name: "Ecrypt Files", extensions: ["ecrypt"] },
       { name: "All Files", extensions: ["*"] },
+      { name: "Ecrypt Files", extensions: ["ecrypt"] },
     ]);
     if (path) {
       state.infoInputPath = path;
@@ -561,7 +593,12 @@ async function loadHistory() {
 
   historyList.innerHTML = "";
 
-  historyData.forEach((item) => {
+  console.log("About to display history items...");
+
+  // Reverse to show newest first
+  historyData.reverse().forEach((item, index) => {
+    console.log(`Creating history item ${index}:`, item);
+
     const historyItem = document.createElement("div");
     historyItem.className = "history-item";
 
@@ -587,23 +624,27 @@ async function loadHistory() {
     const historyActions = document.createElement("div");
     historyActions.className = "history-actions";
 
-    if (item.type === "encrypt") {
-      const undoBtn = document.createElement("button");
-      undoBtn.className = "btn btn-small btn-secondary";
-      undoBtn.onclick = () => undoOperation(item.id);
+    // if (item.type === "encrypt") {
+    //   const undoBtn = document.createElement("button");
+    //   undoBtn.className = "btn btn-small btn-secondary";
+    //   undoBtn.onclick = () => undoOperation(item.id);
 
-      const icon = document.createElement("i");
-      icon.setAttribute("data-lucide", "rotate-ccw");
+    //   const icon = document.createElement("i");
+    //   icon.setAttribute("data-lucide", "rotate-ccw");
 
-      undoBtn.appendChild(icon);
-      undoBtn.appendChild(document.createTextNode(" Undo"));
-      historyActions.appendChild(undoBtn);
-    }
+    //   undoBtn.appendChild(icon);
+    //   undoBtn.appendChild(document.createTextNode(" Undo"));
+    //   historyActions.appendChild(undoBtn);
+    // }
 
     historyItem.appendChild(historyDetails);
     historyItem.appendChild(historyActions);
     historyList.appendChild(historyItem);
+
+    console.log(`History item ${index} added to DOM`);
   });
+
+  console.log(`Total history items in list: ${historyList.children.length}`);
 
   // Re-initialize Lucide icons for the history list
   lucide.createIcons();
