@@ -558,22 +558,51 @@ async function loadHistory() {
     return;
   }
 
-  historyList.innerHTML = historyData
-    .map(
-      (item, index) => `
-        <div class="history-item">
-            <div class="history-details">
-                <div class="history-operation">${item.operation || "Unknown Operation"}</div>
-                <div class="history-path">${item.source || "N/A"} → ${item.output || "N/A"}</div>
-                <div class="history-time">${item.timestamp || "N/A"}</div>
-            </div>
-            <div class="history-actions">
-                ${item.operation === "encrypt" ? `<button class="btn btn-small btn-secondary" onclick="undoOperation('${item.id}')"><i data-lucide="undo"></i> Undo</button>` : ""}
-            </div>
-        </div>
-    `,
-    )
-    .join("");
+  historyList.innerHTML = "";
+
+  historyData.forEach((item) => {
+    const historyItem = document.createElement("div");
+    historyItem.className = "history-item";
+
+    const historyDetails = document.createElement("div");
+    historyDetails.className = "history-details";
+
+    const historyOperation = document.createElement("div");
+    historyOperation.className = "history-operation";
+    historyOperation.textContent = item.operation || "Unknown Operation";
+
+    const historyPath = document.createElement("div");
+    historyPath.className = "history-path";
+    historyPath.textContent = `${item.source || "N/A"} → ${item.output || "N/A"}`;
+
+    const historyTime = document.createElement("div");
+    historyTime.className = "history-time";
+    historyTime.textContent = item.timestamp || "N/A";
+
+    historyDetails.appendChild(historyOperation);
+    historyDetails.appendChild(historyPath);
+    historyDetails.appendChild(historyTime);
+
+    const historyActions = document.createElement("div");
+    historyActions.className = "history-actions";
+
+    if (item.operation === "encrypt") {
+      const undoBtn = document.createElement("button");
+      undoBtn.className = "btn btn-small btn-secondary";
+      undoBtn.onclick = () => undoOperation(item.id);
+
+      const icon = document.createElement("i");
+      icon.setAttribute("data-lucide", "rotate-ccw");
+
+      undoBtn.appendChild(icon);
+      undoBtn.appendChild(document.createTextNode(" Undo"));
+      historyActions.appendChild(undoBtn);
+    }
+
+    historyItem.appendChild(historyDetails);
+    historyItem.appendChild(historyActions);
+    historyList.appendChild(historyItem);
+  });
 
   // Re-initialize Lucide icons for the history list
   lucide.createIcons();
@@ -721,11 +750,18 @@ function showToast(type, message) {
     info: "info",
   };
 
-  toast.innerHTML = `
-        <i data-lucide="${icons[type]}" class="toast-icon"></i>
-        <div class="toast-message">${message}</div>
-    `;
+  // Create icon element
+  const iconElement = document.createElement("i");
+  iconElement.setAttribute("data-lucide", icons[type]);
+  iconElement.className = "toast-icon";
 
+  // Create message element
+  const messageElement = document.createElement("div");
+  messageElement.className = "toast-message";
+  messageElement.textContent = message;
+
+  toast.appendChild(iconElement);
+  toast.appendChild(messageElement);
   container.appendChild(toast);
 
   // Initialize Lucide icons for the new toast
@@ -748,12 +784,22 @@ function formatBytes(bytes) {
 function clearEncryptForm() {
   state.encryptInputPath = null;
   state.encryptKeyFile = null;
-  document.getElementById("encrypt-input-display").innerHTML =
-    '<span class="placeholder"><i data-lucide="folder-open"></i> Click to select folder or file</span>';
-  document.getElementById("encrypt-output").value = "";
-  document.getElementById("encrypt-password").value = "";
-  document.getElementById("encrypt-key-file").value = "";
-  document.getElementById("encrypt-suggestions").innerHTML = "";
+
+  const displayElement = document.getElementById("encrypt-input-display");
+  displayElement.innerHTML = "";
+
+  const placeholder = document.createElement("span");
+  placeholder.className = "placeholder";
+
+  const icon = document.createElement("i");
+  icon.setAttribute("data-lucide", "folder");
+
+  placeholder.appendChild(icon);
+  placeholder.appendChild(
+    document.createTextNode(" Click to select folder or file"),
+  );
+  displayElement.appendChild(placeholder);
+
   document
     .getElementById("encrypt-password-strength")
     .classList.remove("visible");
@@ -765,11 +811,21 @@ function clearEncryptForm() {
 function clearDecryptForm() {
   state.decryptInputPath = null;
   state.decryptKeyFile = null;
-  document.getElementById("decrypt-input-display").innerHTML =
-    '<span class="placeholder"><i data-lucide="package"></i> Click to select .ecrypt file</span>';
-  document.getElementById("decrypt-output").value = "";
-  document.getElementById("decrypt-password").value = "";
-  document.getElementById("decrypt-key-file").value = "";
+
+  const displayElement = document.getElementById("decrypt-input-display");
+  displayElement.innerHTML = "";
+
+  const placeholder = document.createElement("span");
+  placeholder.className = "placeholder";
+
+  const icon = document.createElement("i");
+  icon.setAttribute("data-lucide", "box");
+
+  placeholder.appendChild(icon);
+  placeholder.appendChild(
+    document.createTextNode(" Click to select .ecrypt file"),
+  );
+  displayElement.appendChild(placeholder);
 
   // Re-initialize Lucide icons
   lucide.createIcons();
