@@ -17,8 +17,10 @@
   --gray-800: #262626;
   --gray-900: #171717;
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 body {
@@ -98,6 +100,13 @@ body {
 .nav-item .icon {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
+}
+
+.nav-item .icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
 }
 
 .sidebar-footer {
@@ -193,6 +202,13 @@ body {
   gap: 0.5rem;
 }
 
+.btn i,
+.btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .btn-primary {
   background: var(--black);
   color: var(--white);
@@ -213,8 +229,6 @@ body {
 .btn-secondary:hover {
   background: var(--gray-100);
   border-color: var(--gray-400);
-}
-  background: #475569;
 }
 
 .btn-large {
@@ -294,6 +308,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  flex-direction: column;
+}
+
+.file-display .placeholder i {
+  width: 32px;
+  height: 32px;
+  stroke-width: 1.5;
 }
 
 .file-display .selected-path {
@@ -629,7 +650,14 @@ body {
 }
 
 .toast-icon {
-  font-size: 1.5rem;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toast-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
 .toast-message {
@@ -661,6 +689,17 @@ body {
   text-align: center;
   color: var(--gray-600);
   padding: 2rem;
+}
+
+/* Icon Sizing */
+svg {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+i[data-lucide] {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Scrollbar */

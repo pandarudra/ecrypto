@@ -509,9 +509,10 @@ document.getElementById("info-button").addEventListener("click", async () => {
   });
 
   hideProgress();
+  // console.log(result);
 
   if (result.success) {
-    displayContainerInfo(result.data);
+    displayContainerInfo(result.data.data);
   } else {
     showToast("error", `Failed to read info: ${result.error}`);
   }
