@@ -49,6 +49,9 @@ function switchTab(tab) {
 
   document.getElementById("page-title").textContent = titles[tab][0];
   document.getElementById("page-subtitle").textContent = titles[tab][1];
+
+  // Re-initialize Lucide icons
+  lucide.createIcons();
 }
 
 // ===== ENCRYPT TAB =====
@@ -134,9 +137,21 @@ document.querySelectorAll('input[name="encrypt-method"]').forEach((radio) => {
 // Password visibility toggle
 document
   .getElementById("encrypt-toggle-password")
-  .addEventListener("click", () => {
+  .addEventListener("click", (e) => {
     const input = document.getElementById("encrypt-password");
-    input.type = input.type === "password" ? "text" : "password";
+    const button = e.currentTarget;
+    const icon = button.querySelector("i");
+
+    if (input.type === "password") {
+      input.type = "text";
+      icon.setAttribute("data-lucide", "eye-off");
+    } else {
+      input.type = "password";
+      icon.setAttribute("data-lucide", "eye");
+    }
+
+    // Re-initialize the icon
+    lucide.createIcons();
   });
 
 // Password strength check
@@ -297,9 +312,21 @@ document.querySelectorAll('input[name="decrypt-method"]').forEach((radio) => {
 
 document
   .getElementById("decrypt-toggle-password")
-  .addEventListener("click", () => {
+  .addEventListener("click", (e) => {
     const input = document.getElementById("decrypt-password");
-    input.type = input.type === "password" ? "text" : "password";
+    const button = e.currentTarget;
+    const icon = button.querySelector("i");
+
+    if (input.type === "password") {
+      input.type = "text";
+      icon.setAttribute("data-lucide", "eye-off");
+    } else {
+      input.type = "password";
+      icon.setAttribute("data-lucide", "eye");
+    }
+
+    // Re-initialize the icon
+    lucide.createIcons();
   });
 
 document
@@ -541,12 +568,15 @@ async function loadHistory() {
                 <div class="history-time">${item.timestamp || "N/A"}</div>
             </div>
             <div class="history-actions">
-                ${item.operation === "encrypt" ? `<button class="btn btn-small btn-secondary" onclick="undoOperation('${item.id}')">↩️ Undo</button>` : ""}
+                ${item.operation === "encrypt" ? `<button class="btn btn-small btn-secondary" onclick="undoOperation('${item.id}')"><i data-lucide="undo"></i> Undo</button>` : ""}
             </div>
         </div>
     `,
     )
     .join("");
+
+  // Re-initialize Lucide icons for the history list
+  lucide.createIcons();
 }
 
 async function undoOperation(operationId) {
@@ -686,17 +716,20 @@ function showToast(type, message) {
   toast.className = `toast ${type}`;
 
   const icons = {
-    success: "✓",
-    error: "✗",
-    info: "ℹ",
+    success: "check-circle",
+    error: "x-circle",
+    info: "info",
   };
 
   toast.innerHTML = `
-        <div class="toast-icon">${icons[type]}</div>
+        <i data-lucide="${icons[type]}" class="toast-icon"></i>
         <div class="toast-message">${message}</div>
     `;
 
   container.appendChild(toast);
+
+  // Initialize Lucide icons for the new toast
+  lucide.createIcons();
 
   setTimeout(() => {
     toast.style.animation = "slideIn 0.3s reverse";
@@ -716,7 +749,7 @@ function clearEncryptForm() {
   state.encryptInputPath = null;
   state.encryptKeyFile = null;
   document.getElementById("encrypt-input-display").innerHTML =
-    '<span class="placeholder">📁 Click to select folder or file</span>';
+    '<span class="placeholder"><i data-lucide="folder-open"></i> Click to select folder or file</span>';
   document.getElementById("encrypt-output").value = "";
   document.getElementById("encrypt-password").value = "";
   document.getElementById("encrypt-key-file").value = "";
@@ -724,16 +757,22 @@ function clearEncryptForm() {
   document
     .getElementById("encrypt-password-strength")
     .classList.remove("visible");
+
+  // Re-initialize Lucide icons
+  lucide.createIcons();
 }
 
 function clearDecryptForm() {
   state.decryptInputPath = null;
   state.decryptKeyFile = null;
   document.getElementById("decrypt-input-display").innerHTML =
-    '<span class="placeholder">📦 Click to select .ecrypt file</span>';
+    '<span class="placeholder"><i data-lucide="package"></i> Click to select .ecrypt file</span>';
   document.getElementById("decrypt-output").value = "";
   document.getElementById("decrypt-password").value = "";
   document.getElementById("decrypt-key-file").value = "";
+
+  // Re-initialize Lucide icons
+  lucide.createIcons();
 }
 
 // Progress updates from backend
