@@ -1,5 +1,5 @@
 {
-  "name": "ecrypto-gui",
+  "name": "ecrypto",
   "version": "1.0.0",
   "description": "Military-grade folder encryption with modern GUI",
   "main": "main.js",
