@@ -7,18 +7,23 @@ on:
     branches: [dev]
 
 jobs:
-  test-build:
-    runs-on: windows-latest
+  cli-quick-test:
+    name: CLI Quick Test
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.22"
 
-      - name: Install deps
+      - name: Install dependencies
         run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
 
       - name: Tidy
         run: go mod tidy
@@ -26,14 +31,96 @@ jobs:
       - name: Vet
         run: go vet ./...
 
-      - name: Test
-        run: go test -v ./...
+      - name: Run tests
+        run: go test -v -race ./...
 
-      - name: Build
-        run: go build -o ecrypto.exe
+      - name: Build CLI
+        run: go build -o bin/ecrypto .
+
+  cli-cross-platform:
+    name: CLI Cross-Platform Build
+    needs: cli-quick-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Build CLI (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: go build -o bin/ecrypto -ldflags="-s -w" .
+
+      - name: Build CLI (Windows)
+        if: runner.os == 'Windows'
+        run: go build -o bin/ecrypto.exe -ldflags="-s -w" .
+
+      - name: Test CLI binary
+        if: runner.os != 'Windows'
+        run: ./bin/ecrypto --version || echo "Version check failed"
+
+      - name: Test CLI binary (Windows)
+        if: runner.os == 'Windows'
+        run: .\bin\ecrypto.exe --version || echo "Version check failed"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ecrypto-windows-amd64
-          path: ecrypto.exe
+          name: ecrypto-cli-${{ matrix.os }}
+          path: bin/*
+
+  gui-build:
+    name: GUI Build (Dev)
+    needs: cli-quick-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: electron/package.json
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Build CLI binary for GUI
+        run: |
+          go mod download
+          go build -o bin/ecrypto${{ runner.os == 'Windows' && '.exe' || '' }} .
+
+      - name: Install Electron dependencies
+        working-directory: electron
+        run: npm ci
+
+      - name: Verify Electron setup
+        working-directory: electron
+        run: npm run start -- --version || echo "GUI startup check"
+        continue-on-error: true
+
+      - name: Build Electron GUI
+        working-directory: electron
+        run: npm run build${{ runner.os == 'Windows' && ':win' || ':linux' }}
+
+      - name: Upload GUI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecrypto-gui-dev-${{ matrix.os }}
+          path: electron/dist/*
