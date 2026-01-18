@@ -75,21 +75,21 @@ jobs:
       - name: Build & Release Electron (Linux)
         if: runner.os == 'Linux'
         working-directory: electron
-        run: npm run build:linux
+        run: npm run release:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Release Electron (Windows)
         if: runner.os == 'Windows'
         working-directory: electron
-        run: npm run build:win
+        run: npm run release:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Release Electron (macOS)
         if: runner.os == 'macOS'
         working-directory: electron
-        run: npm run build:mac
+        run: npm run release:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}

@@ -11,10 +11,14 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "build": "electron-builder --publish never",
+    "build:win": "electron-builder --win --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:linux": "electron-builder --linux --publish never",
+    "release": "electron-builder --publish always",
+    "release:win": "electron-builder --win --publish always",
+    "release:mac": "electron-builder --mac --publish always",
+    "release:linux": "electron-builder --linux --publish always"
   },
   "repository": {
     "type": "git",
@@ -67,7 +71,7 @@
         "deb"
       ],
       "category": "Utility",
-      "maintainer": "pandarudra <pandarudra@ecrypto.dev>",
+      "maintainer": "pandarudra <rudrapanda8206@gmail.com>",
       "vendor": "pandarudra",
       "synopsis": "Military-grade encryption tool"
     }
