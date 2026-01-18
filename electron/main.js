@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 const axios = require("axios");
@@ -10,15 +10,13 @@ const API_URL = `http://127.0.0.1:${API_PORT}`; // Use IPv4 explicitly
 
 // Determine Go binary path
 function getGoBinaryPath() {
+  const ext = process.platform === "win32" ? ".exe" : "";
   if (app.isPackaged) {
     // Production: binary in resources
-    const ext = process.platform === "win32" ? ".exe" : "";
-    return path.join(process.resourcesPath, `ecrypto${ext}`);
-  } else {
-    // Development: binary in parent directory
-    const ext = process.platform === "win32" ? ".exe" : "";
-    return path.join(__dirname, "..", `ecrypto${ext}`);
+    return path.join(process.resourcesPath, "bin", `ecrypto${ext}`);
   }
+  // Development: binary in project directory
+  return path.join(__dirname, "..", "bin", `ecrypto${ext}`);
 }
 
 // Start Go API server
@@ -100,6 +98,8 @@ function createWindow() {
 
 // App lifecycle
 app.whenReady().then(async () => {
+  // Remove the menu bar
+  Menu.setApplicationMenu(null);
   try {
     await startGoServer();
     createWindow();

@@ -1,1 +1,8 @@
 node_modules/
+dist/
+build/
+out/
+.DS_Store
+.vscode/
+.env
+.env.local

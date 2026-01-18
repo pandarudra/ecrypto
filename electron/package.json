@@ -35,23 +35,21 @@
     "files": [
       "main.js",
       "preload.js",
-      "renderer/**/*",
-      "../ecrypto.exe",
-      "../ecrypto"
+      "renderer/**/*"
     ],
     "extraResources": [
       {
-        "from": "../ecrypto${env.EXE_EXT}",
-        "to": "ecrypto${env.EXE_EXT}"
+        "from": "../bin",
+        "to": "bin"
       }
     ],
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.ico"
+      "icon": "assets/icons/appicon.png"
     },
     "mac": {
       "target": "dmg",
-      "icon": "assets/icon.icns",
+      "icon": "assets/icons/appicon.icns",
       "category": "public.app-category.utilities"
     },
     "linux": {
@@ -59,7 +57,7 @@
         "AppImage",
         "deb"
       ],
-      "icon": "assets/icon.png",
+      "icon": "assets/icons/appicon.png",
       "category": "Utility"
     }
   }
