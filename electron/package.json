@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "Military-grade folder encryption with modern GUI",
   "main": "main.js",
+  "homepage": "https://github.com/pandarudra/ecrypto",
+  "author": {
+    "name": "pandarudra",
+    "email": "pandarudra@ecrypto.dev"
+  },
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
@@ -11,13 +16,19 @@
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pandarudra/ecrypto.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pandarudra/ecrypto/issues"
+  },
   "keywords": [
     "encryption",
     "security",
     "xchacha20",
     "argon2"
   ],
-  "author": "pandarudra",
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0",
@@ -44,12 +55,10 @@
       }
     ],
     "win": {
-      "target": "nsis",
-      "icon": "assets/icons/appicon.png"
+      "target": "nsis"
     },
     "mac": {
       "target": "dmg",
-      "icon": "assets/icons/appicon.icns",
       "category": "public.app-category.utilities"
     },
     "linux": {
@@ -57,8 +66,10 @@
         "AppImage",
         "deb"
       ],
-      "icon": "assets/icons/appicon.png",
-      "category": "Utility"
+      "category": "Utility",
+      "maintainer": "pandarudra <pandarudra@ecrypto.dev>",
+      "vendor": "pandarudra",
+      "synopsis": "Military-grade encryption tool"
     }
   }
 }
