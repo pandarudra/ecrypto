@@ -6,7 +6,7 @@
   "homepage": "https://github.com/pandarudra/ecrypto",
   "author": {
     "name": "pandarudra",
-    "email": "pandarudra@ecrypto.dev"
+    "email": "rudrapanda8206@gmail.com"
   },
   "scripts": {
     "start": "electron .",
