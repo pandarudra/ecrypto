@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline'; connect-src https://unpkg.com;"
+    />
+    <title>Ecrypto - Military-Grade Encryption</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="logo">
+          <h1>Ecrypto</h1>
+          <p class="subtitle">Military-Grade Encryption</p>
+        </div>
+
+        <nav class="nav-menu">
+          <button class="nav-item active" data-tab="encrypt">
+            <i data-lucide="lock" class="icon"></i>
+            <span>Encrypt</span>
+          </button>
+          <button class="nav-item" data-tab="decrypt">
+            <i data-lucide="unlock" class="icon"></i>
+            <span>Decrypt</span>
+          </button>
+          <button class="nav-item" data-tab="keygen">
+            <i data-lucide="key" class="icon"></i>
+            <span>Generate Key</span>
+          </button>
+          <button class="nav-item" data-tab="info">
+            <i data-lucide="info" class="icon"></i>
+            <span>Container Info</span>
+          </button>
+          <button class="nav-item" data-tab="history">
+            <i data-lucide="clock" class="icon"></i>
+            <span>History</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <p class="tech-info">
+            <strong>Encryption:</strong> XChaCha20-Poly1305<br />
+            <strong>Key Derivation:</strong> Argon2id
+          </p>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+          <div class="header-content">
+            <h2 id="page-title">Encrypt Files & Folders</h2>
+            <p id="page-subtitle">
+              Protect your data with military-grade encryption
+            </p>
+          </div>
+        </header>
+
+        <!-- Tab Panels -->
+        <div class="tab-content">
+          <!-- Encrypt Tab -->
+          <div class="tab-panel active" id="encrypt-panel">
+            <div class="card">
+              <div class="card-header">
+                <h3>Input Selection</h3>
+              </div>
+              <div class="card-body">
+                <div class="file-selector" id="encrypt-input-selector">
+                  <div class="file-display" id="encrypt-input-display">
+                    <span class="placeholder">
+                      <i data-lucide="folder"></i>
+                      Click to select files or folder
+                    </span>
+                  </div>
+                  <div class="button-group">
+                    <button
+                      class="btn btn-secondary"
+                      id="encrypt-select-folder"
+                    >
+                      <i data-lucide="folder"></i>
+                      Select Folder
+                    </button>
+                    <button class="btn btn-secondary" id="encrypt-select-file">
+                      <i data-lucide="file"></i>
+                      Select File
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>Output Location</h3>
+              </div>
+              <div class="card-body">
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="encrypt-output"
+                    placeholder="output.ecrypt"
+                    class="input"
+                  />
+                  <button class="btn btn-secondary" id="encrypt-save-as">
+                    Browse
+                  </button>
+                </div>
+                <div id="encrypt-suggestions" class="suggestions"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>Security Options</h3>
+              </div>
+              <div class="card-body">
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input
+                      type="radio"
+                      name="encrypt-method"
+                      value="password"
+                      checked
+                    />
+                    <span>Use Passphrase</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="encrypt-method" value="key" />
+                    <span>Use Key File</span>
+                  </label>
+                </div>
+
+                <div id="encrypt-password-section" class="security-section">
+                  <div class="input-group">
+                    <input
+                      type="password"
+                      id="encrypt-password"
+                      placeholder="Enter passphrase"
+                      class="input"
+                    />
+                    <button class="btn btn-icon" id="encrypt-toggle-password">
+                      <i data-lucide="eye"></i>
+                    </button>
+                  </div>
+                  <div
+                    class="password-strength"
+                    id="encrypt-password-strength"
+                  ></div>
+                </div>
+
+                <div
+                  id="encrypt-key-section"
+                  class="security-section"
+                  style="display: none"
+                >
+                  <div class="file-selector-inline">
+                    <input
+                      type="text"
+                      id="encrypt-key-file"
+                      placeholder="Select key file"
+                      class="input"
+                      readonly
+                    />
+                    <button class="btn btn-secondary" id="encrypt-select-key">
+                      Browse
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-large" id="encrypt-button">
+              <i data-lucide="lock"></i>
+              Encrypt Now
+            </button>
+          </div>
+
+          <!-- Decrypt Tab -->
+          <div class="tab-panel" id="decrypt-panel">
+            <div class="card">
+              <div class="card-header">
+                <h3>Select Encrypted Container</h3>
+              </div>
+              <div class="card-body">
+                <div class="file-selector">
+                  <div class="file-display" id="decrypt-input-display">
+                    <span class="placeholder">
+                      <i data-lucide="box"></i>
+                      Click to select .ecrypt file
+                    </span>
+                  </div>
+                  <button class="btn btn-secondary" id="decrypt-select-file">
+                    <i data-lucide="folder"></i>
+                    Select Container
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>Output Location</h3>
+              </div>
+              <div class="card-body">
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="decrypt-output"
+                    placeholder="Output folder/file path"
+                    class="input"
+                  />
+                  <button class="btn btn-secondary" id="decrypt-select-folder">
+                    Browse
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>Security Options</h3>
+              </div>
+              <div class="card-body">
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input
+                      type="radio"
+                      name="decrypt-method"
+                      value="password"
+                      checked
+                    />
+                    <span>Use Passphrase</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="decrypt-method" value="key" />
+                    <span>Use Key File</span>
+                  </label>
+                </div>
+
+                <div id="decrypt-password-section" class="security-section">
+                  <div class="input-group">
+                    <input
+                      type="password"
+                      id="decrypt-password"
+                      placeholder="Enter passphrase"
+                      class="input"
+                    />
+                    <button class="btn btn-icon" id="decrypt-toggle-password">
+                      <i data-lucide="eye"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  id="decrypt-key-section"
+                  class="security-section"
+                  style="display: none"
+                >
+                  <div class="file-selector-inline">
+                    <input
+                      type="text"
+                      id="decrypt-key-file"
+                      placeholder="Select key file"
+                      class="input"
+                      readonly
+                    />
+                    <button class="btn btn-secondary" id="decrypt-select-key">
+                      Browse
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-large" id="decrypt-button">
+              <i data-lucide="unlock"></i>
+              Decrypt Now
+            </button>
+          </div>
+
+          <!-- Key Generation Tab -->
+          <div class="tab-panel" id="keygen-panel">
+            <div class="card">
+              <div class="card-header">
+                <h3>Generate Encryption Key</h3>
+              </div>
+              <div class="card-body">
+                <p class="info-text">
+                  Generate a cryptographically secure 256-bit (32-byte)
+                  encryption key. This key can be used instead of a passphrase
+                  for maximum security.
+                </p>
+
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="keygen-output"
+                    placeholder="encryption.key"
+                    class="input"
+                  />
+                  <button class="btn btn-secondary" id="keygen-save-as">
+                    Browse
+                  </button>
+                </div>
+
+                <button class="btn btn-primary btn-large" id="keygen-button">
+                  <i data-lucide="key"></i>
+                  Generate Key
+                </button>
+
+                <div
+                  id="keygen-result"
+                  class="key-result"
+                  style="display: none"
+                >
+                  <div class="key-display">
+                    <code id="keygen-key-value"></code>
+                  </div>
+                  <button class="btn btn-secondary" id="keygen-copy">
+                    <i data-lucide="copy"></i>
+                    Copy to Clipboard
+                  </button>
+                  <p class="warning-text">
+                    <i data-lucide="alert-triangle"></i>
+                    <strong>Important:</strong> Store this key securely. Anyone
+                    with this key can decrypt your data.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Container Info Tab -->
+          <div class="tab-panel" id="info-panel">
+            <div class="card">
+              <div class="card-header">
+                <h3>View Container Information</h3>
+              </div>
+              <div class="card-body">
+                <div class="file-selector">
+                  <div class="file-display" id="info-input-display">
+                    <span class="placeholder">
+                      <i data-lucide="box"></i>
+                      Click to select .ecrypt file
+                    </span>
+                  </div>
+                  <button class="btn btn-secondary" id="info-select-file">
+                    <i data-lucide="folder"></i>
+                    Select Container
+                  </button>
+                </div>
+
+                <button class="btn btn-primary" id="info-button">
+                  <i data-lucide="info"></i>
+                  View Info
+                </button>
+
+                <div
+                  id="info-result"
+                  class="info-result"
+                  style="display: none"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- History Tab -->
+          <div class="tab-panel" id="history-panel">
+            <div class="card">
+              <div class="card-header">
+                <h3>Operation History</h3>
+                <button
+                  class="btn btn-secondary btn-small"
+                  id="refresh-history"
+                >
+                  <i data-lucide="rotate-cw"></i>
+                  Refresh
+                </button>
+              </div>
+              <div class="card-body">
+                <div id="history-list" class="history-list">
+                  <p class="placeholder-text">Loading history...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Modal -->
+        <div class="modal" id="progress-modal" style="display: none">
+          <div class="modal-content">
+            <h3 id="progress-title">Processing...</h3>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p id="progress-text">Initializing...</p>
+            <p id="progress-file"></p>
+          </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toast-container"></div>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      // Initialize Lucide icons
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

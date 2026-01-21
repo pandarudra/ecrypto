@@ -3,8 +3,11 @@ package main
 
 import (
 	"ecrypto/cmd"
+	"ecrypto/gui"
 	"ecrypto/ui"
+	"flag"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -14,6 +17,17 @@ func main() {
     // Print version if requested
     if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v") {
         fmt.Printf("ecrypto %s\n", Version)
+        return
+    }
+
+    // Check for --serve flag (API server mode for GUI)
+    serveFlag := flag.Bool("serve", false, "Run HTTP API server for GUI")
+    portFlag := flag.Int("port", 8765, "API server port")
+    flag.Parse()
+
+    if *serveFlag {
+        server := gui.NewServer(*portFlag)
+        log.Fatal(server.Start())
         return
     }
 
