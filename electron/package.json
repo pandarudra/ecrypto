@@ -50,20 +50,30 @@
     "files": [
       "main.js",
       "preload.js",
-      "renderer/**/*"
+      "renderer/**/*",
+      "assets/**/*"
     ],
     "extraResources": [
       {
         "from": "../bin",
-        "to": "bin"
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
+    "asarUnpack": [
+      "assets/**/*"
+    ],
+    "icon": "assets/icons/key-round.png",
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/icons/key-round.png"
     },
     "mac": {
       "target": "dmg",
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "icon": "assets/icons/key-round.png"
     },
     "linux": {
       "target": [
@@ -73,7 +83,8 @@
       "category": "Utility",
       "maintainer": "pandarudra <rudrapanda8206@gmail.com>",
       "vendor": "pandarudra",
-      "synopsis": "Military-grade encryption tool"
+      "synopsis": "Military-grade encryption tool",
+      "icon": "assets/icons/key-round.png"
     }
   }
 }

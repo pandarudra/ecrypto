@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout
@@ -107,28 +107,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Release Electron (macOS)
-        if: runner.os == 'macOS'
-        working-directory: electron
-        run: npm run release:mac
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-
-      - name: List build artifacts
+      - name: List build artifacts (Unix)
+        if: runner.os != 'Windows'
         working-directory: electron
         run: |
           echo "Contents of dist directory:"
-          ls -la dist/ || dir dist\
+          ls -lah dist/ || true
+
+      - name: List build artifacts (Windows)
+        if: runner.os == 'Windows'
+        working-directory: electron
+        run: |
+          echo "Contents of dist directory:"
+          Get-ChildItem -Path dist -Recurse | Select-Object FullName, Length
 
       - name: Upload GUI release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ecrypto-gui-${{ matrix.os }}-${{ github.ref_name }}
-          path: electron/dist/*.{exe,dmg,AppImage,deb}
+          path: electron/dist/*.{exe,AppImage,deb}
           if-no-files-found: warn
 
       - name: Upload to GitHub Release (Linux)
@@ -148,67 +145,3 @@ jobs:
           files: electron/dist/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload to GitHub Release (macOS)
-        if: runner.os == 'macOS'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: electron/dist/*.dmg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  npm-publish:
-    name: Publish to npm
-    needs: cli-release
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.22"
-
-      - name: Extract version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Update package.json version
-        working-directory: npm
-        run: |
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
-
-      - name: Build CLI binaries for npm
-        run: |
-          go mod download
-          mkdir -p npm/bin
-
-          # Build for Linux
-          GOOS=linux GOARCH=amd64 go build -o npm/bin/ecrypto-linux-amd64 -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
-          GOOS=linux GOARCH=arm64 go build -o npm/bin/ecrypto-linux-arm64 -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
-
-          # Build for macOS
-          GOOS=darwin GOARCH=amd64 go build -o npm/bin/ecrypto-darwin-amd64 -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
-          GOOS=darwin GOARCH=arm64 go build -o npm/bin/ecrypto-darwin-arm64 -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
-
-          # Build for Windows
-          GOOS=windows GOARCH=amd64 go build -o npm/bin/ecrypto-windows-amd64.exe -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
-          GOOS=windows GOARCH=arm64 go build -o npm/bin/ecrypto-windows-arm64.exe -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
-
-      - name: List npm binaries
-        working-directory: npm
-        run: ls -lah bin/
-
-      - name: Publish to npm
-        working-directory: npm
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
