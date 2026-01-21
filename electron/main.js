@@ -1,12 +1,21 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
 const path = require("path");
-const { spawn } = require("child_process");
+const { spawn, spawnSync } = require("child_process");
 const axios = require("axios");
 
 let mainWindow;
 let goServer;
 const API_PORT = 8765;
 const API_URL = `http://127.0.0.1:${API_PORT}`; // Use IPv4 explicitly
+
+// Handle --version flag before app starts
+if (process.argv.includes("--version") || process.argv.includes("-v")) {
+  const ext = process.platform === "win32" ? ".exe" : "";
+  const binaryPath = path.join(__dirname, "..", "bin", `ecrypto${ext}`);
+  const result = spawnSync(binaryPath, ["--version"], { encoding: "utf8" });
+  console.log(result.stdout || result.stderr);
+  process.exit(0);
+}
 
 // Determine Go binary path
 function getGoBinaryPath() {
