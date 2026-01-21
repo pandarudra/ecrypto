@@ -37,11 +37,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Create bin directory for GUI builds
+        run: mkdir -p bin
+
   gui-release:
     name: Release GUI (Electron)
     needs: cli-release
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
@@ -56,17 +60,34 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: electron/package.json
+          cache-dependency-path: electron/package-lock.json
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
 
-      - name: Build CLI binary
+      - name: Build CLI binary (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
           go mod download
-          go build -o bin/ecrypto${{ runner.os == 'Windows' && '.exe' || '' }} -ldflags="-s -w" .
+          mkdir -p bin
+          go build -o bin/ecrypto -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
+
+      - name: Build CLI binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          go mod download
+          New-Item -ItemType Directory -Force -Path bin
+          go build -o bin/ecrypto.exe -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
+
+      - name: Verify CLI binary
+        if: runner.os != 'Windows'
+        run: ./bin/ecrypto --version
+
+      - name: Verify CLI binary (Windows)
+        if: runner.os == 'Windows'
+        run: .\bin\ecrypto.exe --version
 
       - name: Install Electron dependencies
         working-directory: electron
@@ -95,18 +116,44 @@ jobs:
           CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+
+      - name: List build artifacts
+        working-directory: electron
+        run: |
+          echo "Contents of dist directory:"
+          ls -la dist/ || dir dist\
 
       - name: Upload GUI release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ecrypto-gui-${{ matrix.os }}-${{ github.ref_name }}
-          path: electron/dist/*
+          path: electron/dist/*.{exe,dmg,AppImage,deb}
+          if-no-files-found: warn
 
-      - name: Upload to GitHub Release
+      - name: Upload to GitHub Release (Linux)
+        if: runner.os == 'Linux'
         uses: softprops/action-gh-release@v1
         with:
-          files: electron/dist/*
+          files: |
+            electron/dist/*.AppImage
+            electron/dist/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to GitHub Release (Windows)
+        if: runner.os == 'Windows'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: electron/dist/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to GitHub Release (macOS)
+        if: runner.os == 'macOS'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: electron/dist/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -130,21 +177,35 @@ jobs:
         with:
           go-version: "1.22"
 
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        working-directory: npm
+        run: |
+          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
+
       - name: Build CLI binaries for npm
         run: |
           go mod download
+          mkdir -p npm/bin
 
           # Build for Linux
-          GOOS=linux GOARCH=amd64 go build -o npm/bin/ecrypto-linux-amd64 -ldflags="-s -w" .
-          GOOS=linux GOARCH=arm64 go build -o npm/bin/ecrypto-linux-arm64 -ldflags="-s -w" .
+          GOOS=linux GOARCH=amd64 go build -o npm/bin/ecrypto-linux-amd64 -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
+          GOOS=linux GOARCH=arm64 go build -o npm/bin/ecrypto-linux-arm64 -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
 
           # Build for macOS
-          GOOS=darwin GOARCH=amd64 go build -o npm/bin/ecrypto-darwin-amd64 -ldflags="-s -w" .
-          GOOS=darwin GOARCH=arm64 go build -o npm/bin/ecrypto-darwin-arm64 -ldflags="-s -w" .
+          GOOS=darwin GOARCH=amd64 go build -o npm/bin/ecrypto-darwin-amd64 -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
+          GOOS=darwin GOARCH=arm64 go build -o npm/bin/ecrypto-darwin-arm64 -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
 
           # Build for Windows
-          GOOS=windows GOARCH=amd64 go build -o npm/bin/ecrypto-windows-amd64.exe -ldflags="-s -w" .
-          GOOS=windows GOARCH=arm64 go build -o npm/bin/ecrypto-windows-arm64.exe -ldflags="-s -w" .
+          GOOS=windows GOARCH=amd64 go build -o npm/bin/ecrypto-windows-amd64.exe -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
+          GOOS=windows GOARCH=arm64 go build -o npm/bin/ecrypto-windows-arm64.exe -ldflags="-s -w -X main.Version=${{ github.ref_name }}" .
+
+      - name: List npm binaries
+        working-directory: npm
+        run: ls -lah bin/
 
       - name: Publish to npm
         working-directory: npm

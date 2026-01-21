@@ -4,6 +4,9 @@ builds:
   - id: ecrypto
     main: ./main.go
     binary: ecrypto
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
     goos:
       - linux
       - darwin
@@ -23,3 +26,5 @@ release:
   github:
     owner: pandarudra
     name: ecrypto
+  draft: false
+  prerelease: auto
