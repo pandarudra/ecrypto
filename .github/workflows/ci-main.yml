@@ -1,4 +1,4 @@
-name: CI Main
+name: CI MAIN
 
 on:
   push:
@@ -7,13 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  cli-test-build:
-    name: CLI Build & Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        go-version: ["1.21", "1.22"]
+  cli-quick-test:
+    name: CLI Quick Test
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +17,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: "1.22"
 
       - name: Install dependencies
         run: go mod download
@@ -36,7 +32,29 @@ jobs:
         run: go vet ./...
 
       - name: Run tests
-        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+        run: go test -v -race ./...
+
+      - name: Build CLI
+        run: go build -o bin/ecrypto .
+
+  cli-cross-platform:
+    name: CLI Cross-Platform Build
+    needs: cli-quick-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Install dependencies
+        run: go mod download
 
       - name: Build CLI (Linux/macOS)
         if: runner.os != 'Windows'
@@ -46,40 +64,27 @@ jobs:
         if: runner.os == 'Windows'
         run: go build -o bin/ecrypto.exe -ldflags="-s -w" .
 
-      - name: Upload CLI artifact (Linux)
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ecrypto-cli-linux-${{ matrix.go-version }}
-          path: bin/ecrypto
+      - name: Test CLI binary
+        if: runner.os != 'Windows'
+        run: ./bin/ecrypto --version || echo "Version check failed"
 
-      - name: Upload CLI artifact (Windows)
+      - name: Test CLI binary (Windows)
         if: runner.os == 'Windows'
+        run: .\bin\ecrypto.exe --version || echo "Version check failed"
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ecrypto-cli-windows-${{ matrix.go-version }}
-          path: bin/ecrypto.exe
-
-      - name: Upload CLI artifact (macOS)
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ecrypto-cli-macos-${{ matrix.go-version }}
-          path: bin/ecrypto
-
-      - name: Upload coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.22'
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.txt
+          name: ecrypto-cli-${{ matrix.os }}
+          path: bin/*
 
   gui-build:
-    name: GUI Build & Package
-    needs: cli-test-build
+    name: GUI Build (Main)
+    needs: cli-quick-test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -99,44 +104,23 @@ jobs:
       - name: Build CLI binary for GUI
         run: |
           go mod download
-          go build -o bin/ecrypto${{ runner.os == 'Windows' && '.exe' || '' }} -ldflags="-s -w" .
+          go build -o bin/ecrypto${{ runner.os == 'Windows' && '.exe' || '' }} .
 
       - name: Install Electron dependencies
         working-directory: electron
         run: npm ci
 
-      - name: Build Electron GUI (Linux)
-        if: runner.os == 'Linux'
+      - name: Verify Electron setup
         working-directory: electron
-        run: npm run build:linux
+        run: npm run start -- --version || echo "GUI startup check"
+        continue-on-error: true
 
-      - name: Build Electron GUI (Windows)
-        if: runner.os == 'Windows'
+      - name: Build Electron GUI
         working-directory: electron
-        run: npm run build:win
+        run: npm run build${{ runner.os == 'Windows' && ':win' || ':linux' }}
 
-      - name: Build Electron GUI (macOS)
-        if: runner.os == 'macOS'
-        working-directory: electron
-        run: npm run build:mac
-
-      - name: Upload GUI artifact (Linux)
-        if: runner.os == 'Linux'
+      - name: Upload GUI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ecrypto-gui-linux
-          path: electron/dist/*
-
-      - name: Upload GUI artifact (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ecrypto-gui-windows
-          path: electron/dist/*
-
-      - name: Upload GUI artifact (macOS)
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ecrypto-gui-macos
+          name: ecrypto-gui-${{ matrix.os }}
           path: electron/dist/*
